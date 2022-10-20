@@ -21,6 +21,8 @@ class Blockchain {
          */
         Blockchain();
 
+        // TODO destructor to write cached data to disk
+
         // DATA STRUCTURES
         /**
          * @brief User data structure
@@ -46,26 +48,44 @@ class Blockchain {
         };
 
         // METHODS
+        /**
+         * @brief Create a new transaction and write its data to cache. In order to safe cached transactions to disk call write_transactions()
+         * 
+         * @param from Senders private key
+         * @param to Receivers private key
+         * @param amount Sending amount
+         */
         void create_transaction(const std::string& from, const std::string& to, const double& amount);
 
         /**
-         * @brief Function to create new user
+         * @brief Create a new user and write its data to cache. In order to safe cached users to disk call write_users()
          * 
          * @param name Username
          */
         void create_user(const std::string& name);
 
         /**
-         * @brief Function to create new user
+         * @brief Write cahed transactions to disk
          * 
-         * @param names Vector of usernames
          */
-        void create_user(const std::vector<std::string>& names);
+        void write_transactions();
 
         /**
-         * @brief Get all user data
+         * @brief Write cached user data to disk
          * 
-         * @param file_name 
+         */
+        void write_users();
+
+        /**
+         * @brief Get all transaction's
+         * 
+         * @return Vector of all unconfirmed transactions
+         */
+        std::vector<transaction> get_transactions();
+
+        /**
+         * @brief Get all user's
+         * 
          * @return Vector of all users in a blockchain
          */
         std::vector<user> get_users();
@@ -76,25 +96,12 @@ class Blockchain {
 
         std::string data_folder = "./blockchain";
         std::string user_data_file = data_folder + "/users.dat";
+        std::string unconfirmed_transaction_file = data_folder + "/transactions.dat";
 
         std::vector<user> cached_users;
+        std::vector<transaction> cached_transactions;
 
         // METHODS
-        /**
-         * @brief Write user data to file
-         * 
-         * @param file_name File to write user data to
-         * @param u User to write to file
-         */
-        void write_user(const std::string& file_name, const user& u);
-
-        /**
-         * @brief Write user data to file
-         * 
-         * @param file_name File to write user data to
-         * @param users Vector of users to write to file
-         */
-        void write_user(const std::string& file_name, const std::vector<user>& users);
 
         /**
          * @brief Creates blockchain data file of given type

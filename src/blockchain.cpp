@@ -13,16 +13,18 @@ void Blockchain::create_transaction(const std::string& from, const std::string& 
     long current_time = get_epoch_time();
 
     // TODO check if users exsist and have enough money to send
+    // FIXME if transactions with same sender, receiver and amount are created in the same second they get same id
     std::string val_to_hash = from + to + std::to_string(amount) + std::to_string(current_time);
     std::string transaction_id = hash256.hash(val_to_hash);
 
     transaction new_transaction {transaction_id, from, to, amount, current_time};
 
-    // FIXME save to file
+    cached_transactions.push_back(new_transaction);
 }
 
 void Blockchain::create_user(const std::string& name) {
     long current_time = get_epoch_time();
+    // FIXME if users with same username are created in the same second they get same public keys
     std::string val_to_hash = name + std::to_string(current_time);
     std::string public_key = hash256.hash(val_to_hash);
 
@@ -31,16 +33,53 @@ void Blockchain::create_user(const std::string& name) {
     cached_users.push_back(new_user);
 }
 
-void Blockchain::create_user(const std::vector<std::string>& names) {
-    for (std::string name:names) {
-        long current_time = get_epoch_time();
-        // FIXME if users with the same name are cerated at the same second they get identical public keys
-        std::string val_to_hash = name + std::to_string(current_time);
-        std::string public_key = hash256.hash(val_to_hash);
+std::vector<Blockchain::transaction> Blockchain::get_transactions() {
+    const std::string file_type = "#blockchain-data:transactions";
 
-        user new_user {name, public_key, current_time};
-        cached_users.push_back(new_user);
+    std::stringstream buffer;
+    std::string header;
+
+    std::ifstream file (unconfirmed_transaction_file);
+    std::getline(file, header);
+
+    if (header.length()) {
+        bool correct_file_type = ( header == file_type );
+
+        if (!correct_file_type) {
+            throw std::runtime_error("Incorrect file type");
+        }
+    } else {
+        throw std::runtime_error("File not found");
     }
+
+
+    buffer << file.rdbuf();
+
+    std::vector<transaction> transactions;
+    std::string line;
+    transaction t;
+    while (getline(buffer, line, '~')) {
+        t.id = line;
+
+        getline(buffer, line, '~');
+        t.from = line;
+
+        getline(buffer, line, '~');
+        t.to = line;
+
+        getline(buffer, line, '~');
+        t.amount = std::stod(line);
+
+        getline(buffer, line, '~');
+        t.time = std::stoul(line);
+
+        getline(buffer, line, '~');
+        t.spent = (line == "1");
+
+        transactions.push_back(t);
+    }
+
+    return transactions;
 }
 
 std::vector<Blockchain::user> Blockchain::get_users() {
@@ -56,11 +95,9 @@ std::vector<Blockchain::user> Blockchain::get_users() {
         bool correct_file_type = ( header == file_type );
 
         if (!correct_file_type) {
-            // TODO throw from custom error class
             throw std::runtime_error("Incorrect file type");
         }
     } else {
-        // TODO throw from custom error class
         throw std::runtime_error("File not found");
     }
 
@@ -85,33 +122,34 @@ std::vector<Blockchain::user> Blockchain::get_users() {
     return users;
 }
 
-// PRIVATE METHODS
-
-void Blockchain::write_user(const std::string& file_name, const user& u) {
-    const std::string file_type = "#blockchain-data:users"; 
+void Blockchain::write_transactions() {
+    const std::string file_type = "#blockchain-data:transactions";
 
     std::stringstream buffer;
     std::string header;
 
+    for (transaction t:cached_transactions) {
+        buffer << t.id << "~"
+            << t.from << "~"
+            << t.to << "~"
+            << t.amount << "~"
+            << t.time << "~"
+            << t.spent << "~";
+    }
 
-    buffer << u.name << "~"
-            << u.public_key << "~"
-            << u.time_created << "~";
-
-    std::fstream file (file_name);
+    std::fstream file (unconfirmed_transaction_file);
     std::getline(file, header);
 
     if (header.length()) {
         bool correct_file_type = ( header == file_type );
 
         if (!correct_file_type) {
-            // TODO throw from custom error class
             throw std::runtime_error("Incorrect file type");
         }
     } else {
         file.close();
-        create_file("users", file_name);
-        file.open(file_name);
+        create_file("transactions", unconfirmed_transaction_file);
+        file.open(unconfirmed_transaction_file);
     }
 
     file.seekp(0, std::ios_base::end);
@@ -119,32 +157,31 @@ void Blockchain::write_user(const std::string& file_name, const user& u) {
     file << buffer.rdbuf();
 }
 
-void Blockchain::write_user(const std::string& file_name, const std::vector<user>& users) {
-    const std::string file_type = "#blockchain-data:users"; 
+void Blockchain::write_users() {
+    const std::string file_type = "#blockchain-data:users";
 
     std::stringstream buffer;
     std::string header;
 
-    for (user u:users) {
+    for (user u:cached_users) {
         buffer << u.name << "~"
             << u.public_key << "~"
             << u.time_created << "~";
     }
 
-    std::fstream file (file_name);
+    std::fstream file (user_data_file);
     std::getline(file, header);
 
     if (header.length()) {
         bool correct_file_type = ( header == file_type );
 
         if (!correct_file_type) {
-            // TODO throw from custom error class
             throw std::runtime_error("Incorrect file type");
         }
     } else {
         file.close();
-        create_file("users", file_name);
-        file.open(file_name);
+        create_file("users", user_data_file);
+        file.open(user_data_file);
     }
 
     file.seekp(0, std::ios_base::end);
@@ -152,7 +189,7 @@ void Blockchain::write_user(const std::string& file_name, const std::vector<user
     file << buffer.rdbuf();
 }
 
-
+// PRIVATE METHODS
 
 void Blockchain::create_file(std::string data_type, std::string file_name) {
     std::ofstream file (file_name);
