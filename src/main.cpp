@@ -13,7 +13,7 @@ void generate_users(int n) {
         bc.create_user(username);
     }
 
-    bc.write_users();
+    bc.write_to_disk("users");
 }
 
 void generate_transactions(int n) {
@@ -37,21 +37,22 @@ void generate_transactions(int n) {
         bc.create_transaction(sender, receiver, amount);
     }
 
-    bc.write_transactions();
+    bc.write_to_disk("transactions");
 }
 
 
 int main() {
     Blockchain bc;
-    generate_users(1000);
+    bc.get_best_block();
+    // generate_users(1000);
 
-    auto users = bc.get_users();
-    std::cout << users.size() << "\n";
+    // auto users = bc.get_users();
+    // std::cout << users.size() << "\n";
 
-    generate_transactions(10000);
+    // generate_transactions(10000);
 
-    auto transactions = bc.get_transactions();
-    std::cout << transactions.size() << "\n";
+    // auto transactions = bc.get_transactions();
+    // std::cout << transactions.size() << "\n";
 
 
     // bc.create_transaction("602ee1e365757877846b8d4db798589decd897a8a7d8e697e5fd8fa79d775a4d", "933303d1be310ee3d2e2187d676c9477a9764f89dd878bc6aafcff655786d7a8", 100);
