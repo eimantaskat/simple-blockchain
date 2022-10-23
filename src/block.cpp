@@ -46,11 +46,13 @@ void Blockchain::mine_block() {
     blockchain_height++;
 }
 
-void Blockchain::create_block(const std::vector<transaction>& transactions) {
+void Blockchain::create_block() {
     if (blockchain_height == 0) {
         create_first_block();
         return;
     }
+
+    std::vector<transaction> transactions = get_transactions(true);
 
     block prev_block = get_best_block();
 
@@ -110,6 +112,9 @@ void Blockchain::create_first_block() {
 
         tx.push_back(new_transaction);
     }
+    
+    cached_transactions = tx;
+    write_to_disk("transactions");
 
     std::string prev_block_hash = hash256.hash("");
     long time = get_epoch_time();

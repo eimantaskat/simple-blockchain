@@ -23,8 +23,8 @@ void generate_transactions(int n) {
     std::mt19937 mt;
     long unsigned int seed = static_cast<long unsigned int>(hrClock::now().time_since_epoch().count());
     mt.seed(seed);
-    std::uniform_int_distribution<int> users_dist(0, users.size());
-    std::uniform_int_distribution<int> value_dist(0, 100000);
+    std::uniform_int_distribution<int> users_dist(0, users.size()-1);
+    std::uniform_real_distribution<double> value_dist(0, 100000);
     
     for (int i = 0; i < n; i++) {
         int sender_index = users_dist(mt);
@@ -32,20 +32,25 @@ void generate_transactions(int n) {
 
         std::string sender = users[sender_index].public_key;
         std::string receiver = users[receiver_index].public_key;
-        int amount = value_dist(mt);
+        double amount = value_dist(mt);
+
+
 
         bc.create_transaction(sender, receiver, amount);
     }
 
-    bc.write_to_disk("transactions");
+    bc.write_to_disk("unvalidated_transactions");
 }
 
 
 int main() {
     Blockchain bc;
     generate_users(1000);
+    generate_transactions(10000);
     
     bc.create_first_block();
-
     bc.mine_block();
+
+    auto tx = bc.get_transactions(true);
+    std::cout << tx.size();
 }

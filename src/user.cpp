@@ -14,8 +14,17 @@ void Blockchain::create_user(const std::string& name) {
 }
 
 std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std::string& public_key, bool unspent) {
-    // TODO get user's transactions
-    return cached_transactions;
+    std::vector<transaction> user_transactions;
+    
+    std::vector<transaction> tx = get_transactions();
+
+    for (transaction t:tx) {
+        if (t.from == public_key || t.to == public_key) {
+            user_transactions.push_back(t);
+        }
+    }
+
+    return user_transactions;
 }
 
 std::vector<Blockchain::user> Blockchain::get_users() {
@@ -74,7 +83,6 @@ std::stringstream Blockchain::generate_users_buffer() {
 }
 
 double Blockchain::get_balance(const std::string& public_key) {
-    // TODO test this function
     std::vector<transaction> tx;
     tx = get_user_transactions(public_key);
 

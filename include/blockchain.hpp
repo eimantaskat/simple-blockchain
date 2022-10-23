@@ -85,7 +85,7 @@ class Blockchain {
         /**
          * @brief Write selected cached data to disk
          * 
-         * @param data_type Type of data to write to disk. Possible types: block, transactions, users, block_to_mine
+         * @param data_type Type of data to write to disk. Possible types: block, transactions, unvalidated_transactions, users, block_to_mine
          */
         void write_to_disk(std::string data_type);
 
@@ -99,11 +99,10 @@ class Blockchain {
         void mine_block();
 
         /**
-         * @brief Create a new block
+         * @brief Create a new block if there are any unconfirmed transactions
          * 
-         * @param transactions Vector of transactions to put in a block
          */
-        void create_block(const std::vector<transaction>& transactions);
+        void create_block();
 
         /**
          * @brief Create a first block in a blockchain
@@ -154,10 +153,11 @@ class Blockchain {
         /**
          * @brief Get all transaction's
          * 
-         * @return Vector of all unconfirmed transactions
+         * @param unvalidated If true, returns unvalidated transactions and validated otherwise
+         * @return Vector of all transactions
          */
-        std::vector<transaction> get_transactions();
-        
+        std::vector<transaction> get_transactions(bool unvalidated = false);
+
         /**
          * @brief Generate transactions's buffer to write to file
          * 
@@ -215,7 +215,8 @@ class Blockchain {
         std::string data_folder = "./blockchain";
         std::string blocks_folder = data_folder + "/bloks";
         std::string user_data_file = data_folder + "/users.dat";
-        std::string unconfirmed_transaction_file = data_folder + "/transactions.dat";
+        std::string unvalidated_transaction_file = data_folder + "/unvalidated_transactions.dat";
+        std::string transaction_file = data_folder + "/transactions.dat";
         std::string block_to_mine_file = data_folder + "/block_to_mine.dat";
 
         block block_to_mine;

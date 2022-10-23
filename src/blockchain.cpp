@@ -25,14 +25,18 @@ void Blockchain::write_to_disk(std::string data_type) {
 
     std::string filename;
 
-    if (data_type == "transactions") {
-        filename = unconfirmed_transaction_file;
+    if (data_type == "unvalidated_transactions") {
+        filename = unvalidated_transaction_file;
+    } else if (data_type == "transactions") {
+        filename = transaction_file;
     } else if (data_type == "users") {
         filename = user_data_file;
     } else if (data_type == "block_to_mine") {
         filename = block_to_mine_file;
     } else if (data_type == "block") {
         filename = blocks_folder + "/block" + std::to_string(blockchain_height) + ".dat";
+    } else if (data_type == "confirmed_transactions") {
+        filename = block_to_mine_file;
     }
 
     std::fstream file (filename);
@@ -53,7 +57,7 @@ void Blockchain::write_to_disk(std::string data_type) {
     file.seekp(0, std::ios_base::end);
     
     std::stringstream buffer;
-    if (data_type == "transactions") {
+    if (data_type == "unvalidated_transactions" || data_type == "transactions") {
         buffer = generate_transactions_buffer();
         file << buffer.rdbuf();
     } else if (data_type == "users") {
@@ -88,7 +92,12 @@ long Blockchain::get_epoch_time() {
 
 std::string Blockchain::get_merkleroot(std::vector<std::string> transactions) {
     // TODO generate merkleroot
-    return hash256.hash("");
+    std::string value_to_hash;
+
+    for (std::string tx:transactions) {
+        value_to_hash += tx;
+    }
+    return hash256.hash(value_to_hash);
 }
 
 bool Blockchain::file_exists (const std::string& name) {
