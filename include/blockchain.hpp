@@ -9,10 +9,13 @@
 #include <fileapi.h>
 #include <thread>
 #include <sys/stat.h>
+#include <random>
+#include <cstdio>
 
 #include <iostream>
 
 #include "hash.hpp"
+#include "SHA256.hpp"
 
 using hrClock = std::chrono::high_resolution_clock;
 
@@ -38,6 +41,17 @@ class Blockchain {
         };
 
         /**
+         * @brief Transaction output data structure
+         * 
+         */
+        struct txo {
+            std::string transaction_id;
+            std::string to;
+            double amount;
+            bool unspent = true;
+        };
+
+        /**
          * @brief Transaction data structure
          * 
          */
@@ -47,7 +61,8 @@ class Blockchain {
             std::string to;
             double amount;
             long time;
-            bool spent = false;
+            std::vector<txo> in;
+            std::vector<txo> out;
         };
 
         /**
@@ -67,6 +82,9 @@ class Blockchain {
         };
 
         // METHODS
+
+        void mine_block();
+
         /**
          * @brief Create a new transaction and write its data to cache. In order to safe cached transactions to disk call write_to_disk("transactions")
          * 
@@ -90,32 +108,43 @@ class Blockchain {
          */
         void create_block(const std::vector<transaction>& transactions);
 
+        // TODO docstring
+        void create_first_block();
+
         /**
-         * @brief Generate transactions's buffer to writ to file
+         * @brief Generate transactions's buffer to write to file
          * 
          * @return Transactions's stringstream buffer
          */
         std::stringstream generate_transactions_buffer();
 
         /**
-         * @brief Generate users's buffer to writ to file
+         * @brief Generate users's buffer to write to file
          * 
          * @return Users's stringstream buffer
          */
         std::stringstream generate_users_buffer();
+
+        /**
+         * @brief Generate block's that needs to be mined buffer to write to file
+         * 
+         * @return Block's stringstream buffer
+         */
+        std::stringstream generate_block_to_mine_buffer();
+
+        /**
+         * @brief 
+         * 
+         * @return std::stringstream 
+         */
+        std::stringstream generate_block_buffer();
+
+        /**
+         * @brief Write selected cached data to disk
+         * 
+         * @param data_type Type of data to write to disk. Possible types: block, transactions, users, block_to_mine
+         */
         void write_to_disk(std::string data_type);
-
-        /**
-         * @brief Write cached user data to disk
-         * 
-         */
-        void write_users();
-
-        /**
-         * @brief Write mined block to file
-         * 
-         */
-        void write_block();
 
         /**
          * @brief Get all transaction's
@@ -147,19 +176,29 @@ class Blockchain {
          */
         block get_best_block();
 
+        /**
+         * @brief Get the block to mine
+         * 
+         * @return Block that needs to be mined 
+         */
+        block get_block_to_mine();
+
     private:
         // VARIABLES
         Hash hash256;
+        std::mt19937 mt;
 
         std::string data_folder = "./blockchain";
         std::string blocks_folder = data_folder + "/bloks";
         std::string user_data_file = data_folder + "/users.dat";
         std::string unconfirmed_transaction_file = data_folder + "/transactions.dat";
-
-        std::vector<user> cached_users;
-        std::vector<transaction> cached_transactions;
+        std::string block_to_mine_file = data_folder + "/block_to_mine.dat";
 
         block block_to_mine;
+        block mined_block;
+        
+        std::vector<user> cached_users;
+        std::vector<transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
         int difficulity_target = 4;
@@ -198,6 +237,4 @@ class Blockchain {
          * @return false if file does not exist
          */
         bool file_exists(const std::string& name);
-
-        void create_first_block(const std::vector<transaction>& transactions);
 };
