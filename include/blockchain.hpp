@@ -82,24 +82,21 @@ class Blockchain {
         };
 
         // METHODS
+        /**
+         * @brief Write selected cached data to disk
+         * 
+         * @param data_type Type of data to write to disk. Possible types: block, transactions, users, block_to_mine
+         */
+        void write_to_disk(std::string data_type);
 
+
+
+        // BLOCK
+        /**
+         * @brief If there is a block to mine, mine it
+         * 
+         */
         void mine_block();
-
-        /**
-         * @brief Create a new transaction and write its data to cache. In order to safe cached transactions to disk call write_to_disk("transactions")
-         * 
-         * @param from Senders private key
-         * @param to Receivers private key
-         * @param amount Sending amount
-         */
-        void create_transaction(const std::string& from, const std::string& to, const double& amount);
-
-        /**
-         * @brief Create a new user and write its data to cache. In order to safe cached users to disk call write_to_disk("users")
-         * 
-         * @param name Username
-         */
-        void create_user(const std::string& name);
 
         /**
          * @brief Create a new block
@@ -108,30 +105,19 @@ class Blockchain {
          */
         void create_block(const std::vector<transaction>& transactions);
 
-        // TODO docstring
+        /**
+         * @brief Create a first block in a blockchain
+         * 
+         */
         void create_first_block();
-
-        /**
-         * @brief Generate transactions's buffer to write to file
-         * 
-         * @return Transactions's stringstream buffer
-         */
-        std::stringstream generate_transactions_buffer();
-
-        /**
-         * @brief Generate users's buffer to write to file
-         * 
-         * @return Users's stringstream buffer
-         */
-        std::stringstream generate_users_buffer();
-
+        
         /**
          * @brief Generate block's that needs to be mined buffer to write to file
          * 
          * @return Block's stringstream buffer
          */
         std::stringstream generate_block_to_mine_buffer();
-
+        
         /**
          * @brief 
          * 
@@ -140,18 +126,55 @@ class Blockchain {
         std::stringstream generate_block_buffer();
 
         /**
-         * @brief Write selected cached data to disk
+         * @brief Get the last block from the longest chain
          * 
-         * @param data_type Type of data to write to disk. Possible types: block, transactions, users, block_to_mine
+         * @return Last added block 
          */
-        void write_to_disk(std::string data_type);
+        block get_best_block();
 
+        /**
+         * @brief Get the block to mine
+         * 
+         * @return Block that needs to be mined 
+         */
+        block get_block_to_mine();
+
+
+
+        // TRANSACTION
+        /**
+         * @brief Create a new transaction and write its data to cache. In order to safe cached transactions to disk call write_to_disk("transactions")
+         * 
+         * @param from Senders private key
+         * @param to Receivers private key
+         * @param amount Sending amount
+         */
+        void create_transaction(const std::string& from, const std::string& to, const double& amount);
+        
         /**
          * @brief Get all transaction's
          * 
          * @return Vector of all unconfirmed transactions
          */
         std::vector<transaction> get_transactions();
+        
+        /**
+         * @brief Generate transactions's buffer to write to file
+         * 
+         * @return Transactions's stringstream buffer
+         */
+        std::stringstream generate_transactions_buffer();
+
+
+
+        // USER
+
+        /**
+         * @brief Create a new user and write its data to cache. In order to safe cached users to disk call write_to_disk("users")
+         * 
+         * @param name Username
+         */
+        void create_user(const std::string& name);
 
         /**
          * @brief Get all transactions user has received
@@ -168,20 +191,21 @@ class Blockchain {
          * @return Vector of all users in a blockchain
          */
         std::vector<user> get_users();
-        
-        /**
-         * @brief Get the last block from the longest chain
-         * 
-         * @return Last added block 
-         */
-        block get_best_block();
 
         /**
-         * @brief Get the block to mine
+         * @brief Generate users's buffer to write to file
          * 
-         * @return Block that needs to be mined 
+         * @return Users's stringstream buffer
          */
-        block get_block_to_mine();
+        std::stringstream generate_users_buffer();
+
+        /**
+         * @brief Get user's account balance
+         * 
+         * @param public_key User's public key
+         * @return User's balance
+         */
+        double get_balance(const std::string& public_key);
 
     private:
         // VARIABLES
