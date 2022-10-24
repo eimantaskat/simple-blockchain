@@ -10,21 +10,6 @@ void Blockchain::create_transaction(const std::string& from, const std::string& 
     std::string val_to_hash = from + to + std::to_string(amount) + std::to_string(current_time);
     std::string transaction_id = hash256.hash(val_to_hash);
 
-    // FIXME inputs and outputs
-    // std::vector<transaction> txs = get_user_transactions(from, true);
-    // std::vector<std::string> input_ids;
-    // double input_amount = 0;
-    // for (transaction tx:txs) {
-    //     for (txo utxo:tx.out) {
-    //         if (utxo.unspent && utxo.to == from) {
-    //             txs.push_back(tx);
-    //             input_ids.push_back(utxo.transaction_id);
-    //             input_amount += utxo.amount;
-    //         }
-    //     }
-    //     if (input_amount >= )
-    // }
-
     transaction new_transaction {transaction_id, from, to, amount, current_time};
 
     cached_transactions.push_back(new_transaction);
@@ -66,23 +51,18 @@ std::vector<Blockchain::transaction> Blockchain::get_transactions(bool unvalidat
     std::string line;
     transaction t;
     while (getline(buffer, line, '~')) {
-        // std::cout << "id " << line << "\n";
         t.id = line;
 
         getline(buffer, line, '~');
-        // std::cout << "from " << line << "\n";
         t.from = line;
 
         getline(buffer, line, '~');
-        // std::cout << "to " << line << "\n";
         t.to = line;
 
         getline(buffer, line, '~');
-        // std::cout << "" << line << "\n";
         t.amount = std::stod(line);
 
         getline(buffer, line, '~');
-        // std::cout << "" << line << "\n";
         t.time = std::stol(line);
 
 
@@ -158,4 +138,71 @@ std::stringstream Blockchain::generate_transactions_buffer() {
     cached_transactions.clear();
 
     return buffer;
+}
+
+void Blockchain::trunc_unvalidated_transactions_file(const int& size) {
+    std::stringstream buffer;
+
+    std::fstream file (unvalidated_transaction_file, std::fstream::in);
+    buffer << file.rdbuf();
+    file.close();
+
+    std::string file_contents;
+    std::string line;
+    std::string prev_line;
+    int tx_no = 0;
+
+    while (tx_no < size) {
+        getline(buffer, line, '~');
+        file_contents += line + "~";
+
+        if (prev_line == "|" && line == "|") {
+            tx_no++;
+        }
+
+        prev_line = line;
+    }
+
+    file.open(unvalidated_transaction_file, std::fstream::out);
+    file << file_contents;
+}
+
+// FIXME optimise this method
+Blockchain::transaction Blockchain::validate_transaction(transaction tx) {
+    std::string id = tx.id;
+    std::string from = tx.from;
+    std::string to = tx.to;
+    double sending_amount = tx.amount;
+
+    std::vector<transaction> txs = get_user_transactions(from, true);
+    std::vector<std::string> input_ids;
+    double input_amount = 0;
+
+    for (transaction tx:txs) {
+        for (txo utxo:tx.out) {
+            if (utxo.unspent && utxo.to == from) {
+                input_ids.push_back(utxo.transaction_id);
+                input_amount += utxo.amount;
+            }
+        }
+
+        if (input_amount >= sending_amount) {
+            double change;
+            change = input_amount - sending_amount;
+
+            txo utxo0 {id, to, sending_amount};
+            txo utxo1 {id, from, change};
+
+            tx.out.push_back(utxo0);
+            tx.out.push_back(utxo1);
+
+            // TODO mark inputs (input_ids) as spent
+
+            return tx;
+        }
+    }
+
+    // std::cout << "Transaction " << tx.id << " cannot be validated\n";
+    // FIXME check if this works
+    return transaction();
 }

@@ -37,7 +37,7 @@ void Blockchain::mine_block() {
 
     std::cout << "Block mined! Hash: " << hash << "\n";
 
-    block_to_mine = block();
+    mineable_block.hash = hash;
     mined_block = mineable_block;
 
     int result = remove(block_to_mine_file.c_str());
@@ -52,19 +52,41 @@ void Blockchain::create_block() {
         return;
     }
 
+    // get transactions
     std::vector<transaction> transactions = get_transactions(true);
 
+    int tx_amount = max_block_tx;
+    if (tx_amount > transactions.size()) {
+        tx_amount = transactions.size();
+    }
+
+    std::vector<transaction> tx(transactions.end() - tx_amount, transactions.end());
+
+    int file_size = transactions.size() - tx.size();
+    
+    // validate transactions
+    for (int i = 0; i < tx.size(); i++) {
+        tx[i] = validate_transaction(tx[i]);
+    }
+
+    tx.erase(std::remove_if(
+        tx.begin(), tx.end(),
+        [](const transaction& t) { 
+            return t.id == "";
+        }), tx.end());
+
+    // ---
     block prev_block = get_best_block();
 
     std::string prev_block_hash = prev_block.hash;
     long time = get_epoch_time();
 
-    std::vector<std::string> tx;
+    std::vector<std::string> tx_str;
     for (transaction t : transactions) {
-        tx.push_back(t.id);
+        tx_str.push_back(t.id);
     }
 
-    std::string merkleroot = get_merkleroot(tx);
+    std::string merkleroot = get_merkleroot(tx_str);
 
     block new_block;
     new_block.height = blockchain_height;
@@ -73,9 +95,15 @@ void Blockchain::create_block() {
     new_block.version = blockchain_version;
     new_block.merkleroot = merkleroot;
     new_block.difficulity_target = difficulity_target;
-    new_block.tx = tx;
+    new_block.tx = tx_str;
 
-    block_to_mine = new_block;
+    if (!file_exists(block_to_mine_file)) {
+        cached_transactions = tx;
+        write_to_disk("transactions");
+        block_to_mine = new_block;
+        trunc_unvalidated_transactions_file(file_size);
+        write_to_disk("block_to_mine");
+    }
 }
 
 void Blockchain::create_first_block() {
@@ -112,9 +140,6 @@ void Blockchain::create_first_block() {
 
         tx.push_back(new_transaction);
     }
-    
-    cached_transactions = tx;
-    write_to_disk("transactions");
 
     std::string prev_block_hash = hash256.hash("");
     long time = get_epoch_time();
@@ -136,6 +161,8 @@ void Blockchain::create_first_block() {
     new_block.tx = tx_ids;
 
     if (!file_exists(block_to_mine_file)) {
+        cached_transactions = tx;
+        write_to_disk("transactions");
         block_to_mine = new_block;
         write_to_disk("block_to_mine");
     }

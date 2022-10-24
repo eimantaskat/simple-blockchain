@@ -165,6 +165,9 @@ class Blockchain {
          */
         std::stringstream generate_transactions_buffer();
 
+        void trunc_unvalidated_transactions_file(const int& size);
+        transaction validate_transaction(transaction tx);
+
 
 
         // USER
@@ -228,6 +231,7 @@ class Blockchain {
         std::string blockchain_version = "v0.1";
         int difficulity_target = 4;
         int blockchain_height = 0;
+        int max_block_tx = 100;
 
         // METHODS
 
