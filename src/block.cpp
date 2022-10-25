@@ -36,9 +36,26 @@ void Blockchain::mine_block() {
     } while (hash.substr(0, diff_target) != padding);
 
     std::cout << "Block mined! Hash: " << hash << "\n";
-
     mineable_block.hash = hash;
     mined_block = mineable_block;
+
+    // istrinti i bloka paimtas tranzakcijas
+    std::vector<transaction> transactions = cached_unvalidated_transactions;
+
+    int tx_amount = max_block_tx;
+    if (tx_amount > transactions.size()) {
+        tx_amount = transactions.size();
+    }
+
+    int file_size = cached_unvalidated_transactions.size() - tx_amount;
+
+    if (blockchain_height != 0) {
+        trunc_unvalidated_transactions_file(file_size);
+    }
+
+    for (std::string tx_id:mined_block.tx) {
+        complete_transaction(tx_id);
+    }
 
     int result = remove(block_to_mine_file.c_str());
     write_to_disk("block");
@@ -53,7 +70,7 @@ void Blockchain::create_block() {
     }
 
     // get transactions
-    std::vector<transaction> transactions = get_transactions(true);
+    std::vector<transaction> transactions = cached_unvalidated_transactions;
 
     int tx_amount = max_block_tx;
     if (tx_amount > transactions.size()) {
@@ -61,19 +78,17 @@ void Blockchain::create_block() {
     }
 
     std::vector<transaction> tx(transactions.end() - tx_amount, transactions.end());
-
-    int file_size = transactions.size() - tx.size();
     
     // validate transactions
-    for (int i = 0; i < tx.size(); i++) {
-        tx[i] = validate_transaction(tx[i]);
-    }
+    // for (int i = 0; i < tx.size(); i++) {
+    //     tx[i] = validate_transaction(tx[i]);
+    // }
 
-    tx.erase(std::remove_if(
-        tx.begin(), tx.end(),
-        [](const transaction& t) { 
-            return t.id == "";
-        }), tx.end());
+    // tx.erase(std::remove_if(
+    //     tx.begin(), tx.end(),
+    //     [](const transaction& t) { 
+    //         return t.id == "";
+    //     }), tx.end());
 
     // ---
     block prev_block = get_best_block();
@@ -82,7 +97,7 @@ void Blockchain::create_block() {
     long time = get_epoch_time();
 
     std::vector<std::string> tx_str;
-    for (transaction t : transactions) {
+    for (transaction t : tx) {
         tx_str.push_back(t.id);
     }
 
@@ -98,10 +113,8 @@ void Blockchain::create_block() {
     new_block.tx = tx_str;
 
     if (!file_exists(block_to_mine_file)) {
-        cached_transactions = tx;
         write_to_disk("transactions");
         block_to_mine = new_block;
-        trunc_unvalidated_transactions_file(file_size);
         write_to_disk("block_to_mine");
     }
 }
@@ -113,11 +126,10 @@ void Blockchain::create_first_block() {
     }
 
     std::vector<user> users;
-    users = get_users();
+    users = cached_users;
 
-    std::uniform_real_distribution<double> amount_dist(0, 1000);
+    std::uniform_real_distribution<double> amount_dist(100, 1000000);
 
-    std::vector<transaction> tx;
     for (user u:users) {
         std::string from = "";
         std::string to = u.public_key;
@@ -138,14 +150,14 @@ void Blockchain::create_first_block() {
 
         transaction new_transaction {transaction_id, from, to, amount, current_time, in, out};
 
-        tx.push_back(new_transaction);
+        cached_transactions.push_back(new_transaction);
     }
 
     std::string prev_block_hash = hash256.hash("");
     long time = get_epoch_time();
 
     std::vector<std::string> tx_ids;
-    for (transaction t : tx) {
+    for (transaction t : cached_transactions) {
         tx_ids.push_back(t.id);
     }
 
@@ -161,10 +173,9 @@ void Blockchain::create_first_block() {
     new_block.tx = tx_ids;
 
     if (!file_exists(block_to_mine_file)) {
-        cached_transactions = tx;
-        write_to_disk("transactions");
         block_to_mine = new_block;
         write_to_disk("block_to_mine");
+        blockchain_height++;
     }
 }
 

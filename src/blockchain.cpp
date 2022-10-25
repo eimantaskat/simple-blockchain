@@ -13,6 +13,14 @@ Blockchain::Blockchain() {
         blockchain_height++;
         file_name = block_file_prefix + std::to_string(blockchain_height) + block_file_suffix;
     }
+    
+    read_users();
+    read_transactions();
+}
+
+Blockchain::~Blockchain() {
+    write_to_disk("users");
+    write_to_disk("unvalidated_transactions");
 }
 
 // PUBLIC METHODS

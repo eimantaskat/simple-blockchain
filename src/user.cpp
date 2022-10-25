@@ -11,6 +11,7 @@ void Blockchain::create_user(const std::string& name) {
     user new_user {name, public_key, current_time};
 
     cached_users.push_back(new_user);
+    get_users();
 }
 
 std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std::string& public_key, bool unspent) {
@@ -28,6 +29,10 @@ std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std
 }
 
 std::vector<Blockchain::user> Blockchain::get_users() {
+    return cached_users;
+}
+
+void Blockchain::read_users() {
     const std::string file_type = "#blockchain-data:users";
 
     std::stringstream buffer;
@@ -43,7 +48,7 @@ std::vector<Blockchain::user> Blockchain::get_users() {
             throw std::runtime_error("Incorrect file type");
         }
     } else {
-        throw std::runtime_error("File not found");
+        std::cout << "Users file not found\n";
     }
 
 
@@ -62,10 +67,8 @@ std::vector<Blockchain::user> Blockchain::get_users() {
         getline(buffer, line, '~');
         u.time_created = std::stoul(line);
 
-        users.push_back(u);
+        cached_users.push_back(u);
     }
-
-    return users;
 }
 
 std::stringstream Blockchain::generate_users_buffer() {
@@ -76,8 +79,6 @@ std::stringstream Blockchain::generate_users_buffer() {
             << u.public_key << "~"
             << u.time_created << "~";
     }
-
-    cached_users.clear();
 
     return buffer;
 }

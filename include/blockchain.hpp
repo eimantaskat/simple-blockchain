@@ -27,7 +27,11 @@ class Blockchain {
          */
         Blockchain();
 
-        // TODO destructor to write cached data to disk
+        /**
+         * @brief Destroy the Blockchain object
+         * 
+         */
+        ~Blockchain();
 
         // DATA STRUCTURES
         /**
@@ -150,13 +154,15 @@ class Blockchain {
          */
         void create_transaction(const std::string& from, const std::string& to, const double& amount);
         
+        void read_transactions();
         /**
          * @brief Get all transaction's
          * 
          * @param unvalidated If true, returns unvalidated transactions and validated otherwise
          * @return Vector of all transactions
          */
-        std::vector<transaction> get_transactions(bool unvalidated = false);
+        std::vector<transaction> get_unvalidated_transactions();
+        std::vector<transaction> get_transactions();
 
         /**
          * @brief Generate transactions's buffer to write to file
@@ -166,7 +172,7 @@ class Blockchain {
         std::stringstream generate_transactions_buffer();
 
         void trunc_unvalidated_transactions_file(const int& size);
-        transaction validate_transaction(transaction tx);
+        void complete_transaction(std::string tx_id);
 
 
 
@@ -189,10 +195,12 @@ class Blockchain {
         std::vector<transaction> get_user_transactions(const std::string& public_key, bool unspent = false);
 
         /**
-         * @brief Get all user's
+         * @brief Read users from disk
          * 
          * @return Vector of all users in a blockchain
          */
+        void read_users();
+
         std::vector<user> get_users();
 
         /**
@@ -226,6 +234,7 @@ class Blockchain {
         block mined_block;
         
         std::vector<user> cached_users;
+        std::vector<transaction> cached_unvalidated_transactions;
         std::vector<transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
