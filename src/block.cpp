@@ -49,13 +49,16 @@ void Blockchain::mine_block() {
 
     int file_size = cached_unvalidated_transactions.size() - tx_amount;
 
-    if (blockchain_height != 0) {
-        trunc_unvalidated_transactions_file(file_size);
-    }
-
     for (std::string tx_id:mined_block.tx) {
         complete_transaction(tx_id);
     }
+
+    if (mined_block.height != 0) {
+        cached_unvalidated_transactions.resize(file_size);
+
+        // trunc_unvalidated_transactions_file(file_size);
+    }
+
 
     int result = remove(block_to_mine_file.c_str());
     write_to_disk("block");
@@ -175,7 +178,6 @@ void Blockchain::create_first_block() {
     if (!file_exists(block_to_mine_file)) {
         block_to_mine = new_block;
         write_to_disk("block_to_mine");
-        blockchain_height++;
     }
 }
 
@@ -217,9 +219,69 @@ std::stringstream Blockchain::generate_block_buffer() {
 
 Blockchain::block Blockchain::get_best_block() {
     block best_block;
+    best_block = read_block(blockchain_height - 1);
 
-    // TODO return last block
     return best_block;
+}
+
+Blockchain::block Blockchain::read_block(const int& index) {
+    std::stringstream buffer;
+    std::string header;
+
+    std::string file_type;
+    std::string file_name;
+
+    file_type = "#blockchain-data:block";
+    file_name = blocks_folder + "/block" + std::to_string(index) + ".dat";
+
+    std::ifstream file (file_name);
+    std::getline(file, header);
+
+    if (header.length()) {
+        bool correct_file_type = ( header == file_type );
+
+        if (!correct_file_type) {
+            throw std::runtime_error("Incorrect file type");
+        }
+    } else {
+        std::cout << "Block file not found\n";
+    }
+
+    buffer << file.rdbuf();
+    file.close();
+
+    std::string line;
+    block b;
+
+    getline(buffer, line, '~');
+    b.hash = line;
+
+    getline(buffer, line, '~');
+    b.height = std::stoi(line);
+
+    getline(buffer, line, '~');
+    b.prev_block_hash = line;
+
+    getline(buffer, line, '~');
+    b.time = std::stol(line);
+
+    getline(buffer, line, '~');
+    b.version = line;
+
+    getline(buffer, line, '~');
+    b.merkleroot = line;
+
+    getline(buffer, line, '~');
+    b.nonce = std::stoull(line);
+
+    getline(buffer, line, '~');
+    b.difficulity_target = std::stoi(line);
+
+    while (getline(buffer, line, '~')) {
+        b.tx.push_back(line);
+    }
+
+    return b;
 }
 
 Blockchain::block Blockchain::get_block_to_mine() {
@@ -270,6 +332,25 @@ Blockchain::block Blockchain::get_block_to_mine() {
     }
 
     return mineable_block;
+}
+
+void Blockchain::print_block(const int& index) {
+    block b = read_block(index);
+
+    std::cout << "Hash: " << b.hash << "\n"
+                << "Height: " << b.height << "\n"
+                << "Previous block hash: " << b.prev_block_hash << "\n"
+                << "Timestamp: " << b.time << "\n"
+                << "Version: " << b.version << "\n"
+                << "Merkleroot: " << b.merkleroot << "\n"
+                << "Nonce: " << b.nonce << "\n"
+                << "Difficulity: " << b.difficulity_target << "\n"
+                << "Transactions: \n";
+    for (auto tx:b.tx) {
+        std::cout << "\t" << tx << "\n";
+    }
+
+    return;
 }
 
 // PRIVATE METHODS

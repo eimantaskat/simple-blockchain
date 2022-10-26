@@ -93,6 +93,8 @@ class Blockchain {
          */
         void write_to_disk(std::string data_type);
 
+        void write();
+
 
 
         // BLOCK
@@ -135,12 +137,15 @@ class Blockchain {
          */
         block get_best_block();
 
+        block read_block(const int& index);
+
         /**
          * @brief Get the block to mine
          * 
          * @return Block that needs to be mined 
          */
         block get_block_to_mine();
+        void print_block(const int& index);
 
 
 
@@ -155,6 +160,7 @@ class Blockchain {
         void create_transaction(const std::string& from, const std::string& to, const double& amount);
         
         void read_transactions();
+        void read_unvalidated_transactions();
         /**
          * @brief Get all transaction's
          * 
@@ -170,9 +176,11 @@ class Blockchain {
          * @return Transactions's stringstream buffer
          */
         std::stringstream generate_transactions_buffer();
+        std::stringstream generate_unvalidated_transactions_buffer();
 
         void trunc_unvalidated_transactions_file(const int& size);
         void complete_transaction(std::string tx_id);
+        void print_transaction(const std::string& id);
 
 
 

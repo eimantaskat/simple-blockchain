@@ -13,14 +13,20 @@ Blockchain::Blockchain() {
         blockchain_height++;
         file_name = block_file_prefix + std::to_string(blockchain_height) + block_file_suffix;
     }
-    
+
     read_users();
     read_transactions();
+    read_unvalidated_transactions();
 }
 
 Blockchain::~Blockchain() {
+    write();
+}
+
+void Blockchain::write() {
     write_to_disk("users");
     write_to_disk("unvalidated_transactions");
+    write_to_disk("transactions");
 }
 
 // PUBLIC METHODS
@@ -42,31 +48,39 @@ void Blockchain::write_to_disk(std::string data_type) {
     } else if (data_type == "block_to_mine") {
         filename = block_to_mine_file;
     } else if (data_type == "block") {
-        filename = blocks_folder + "/block" + std::to_string(blockchain_height) + ".dat";
+        filename = blocks_folder + "/block" + std::to_string(mined_block.height) + ".dat";
     } else if (data_type == "confirmed_transactions") {
         filename = block_to_mine_file;
     }
 
+    // std::fstream file (filename);
+    // std::getline(file, header);
+    // std::cout << header << "\n";
+    // if (header.length()) {
+    //     bool correct_file_type = ( header == file_type );
+
+    //     if (!correct_file_type) {
+    //         throw std::runtime_error("Incorrect file type");
+    //     }
+    // } else {
+    //     file.close();
+    //     create_file(data_type, filename);
+    //     file.open(filename);
+    //     std::getline(file, header);
+    //     std::cout << header << "\n";
+    // }
+
+    create_file(data_type, filename);
     std::fstream file (filename);
-    std::getline(file, header);
-
-    if (header.length()) {
-        bool correct_file_type = ( header == file_type );
-
-        if (!correct_file_type) {
-            throw std::runtime_error("Incorrect file type");
-        }
-    } else {
-        file.close();
-        create_file(data_type, filename);
-        file.open(filename);
-    }
 
     file.seekp(0, std::ios_base::end);
     
     std::stringstream buffer;
-    if (data_type == "unvalidated_transactions" || data_type == "transactions") {
+    if (data_type == "transactions") {
         buffer = generate_transactions_buffer();
+        file << buffer.rdbuf();
+    } else if (data_type == "unvalidated_transactions") {
+        buffer = generate_unvalidated_transactions_buffer();
         file << buffer.rdbuf();
     } else if (data_type == "users") {
         buffer = generate_users_buffer();

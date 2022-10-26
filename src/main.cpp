@@ -34,37 +34,48 @@ void generate_transactions(Blockchain &bc, int n) {
 }
 
 int main() {
-    auto start = hrClock::now();
-
     Blockchain bc;
-    generate_users(bc, 1000);
-    auto u = bc.get_users();
-    std::cout << u.size() << "\n";
-    generate_transactions(bc, 10000);
-
-    auto transactions = bc.get_unvalidated_transactions();
-    // std::cout << transactions.size() << "\n";
-
-    bc.create_block();
-    bc.mine_block();
-
-    transactions = bc.get_unvalidated_transactions();
-    std::cout << transactions.size() << "\n";
     
-    bc.create_block();
-    bc.mine_block();
+    std::string input;
+    while (true) {
+        std::cout << "Command: ";
+        std::cin >> input;
 
-    transactions = bc.get_unvalidated_transactions();
-    std::cout << transactions.size() << "\n";
-
-    // bc.create_block();
-    // bc.mine_block();
-
-    // transactions = bc.get_unvalidated_transactions();
-    // std::cout << transactions.size() << "\n";
-    // transactions = bc.get_transactions();
-    // std::cout << transactions.size() << "\n";
-
-
-    // bc.end();
+        if (input == "generateData") {
+            generate_users(bc, 1000);
+            generate_transactions(bc, 10000);
+            bc.create_block();
+            bc.mine_block();
+            bc.write();
+            std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
+        } else if (input == "mineBlock") {
+            bc.create_block();
+            bc.mine_block();
+        } else if (input == "mineAllBlocks") {
+            while (bc.get_unvalidated_transactions().size() > 0) {
+                bc.create_block();
+                bc.mine_block();
+            }
+            std::cout << "No more transactions left\n";
+        } else if (input == "showBlock") {
+            int hash;
+            std::cout << "Block id: ";
+            std::cin >> hash;
+            bc.print_block(hash);
+        } else if (input == "showTransaction") {
+            std::string hash;
+            std::cout << "Transaction hash: ";
+            std::cin >> hash;
+            bc.print_transaction(hash);
+        } else if (input == "quit") {
+            break;
+        } else if (input == "help") {
+            std::cout << "Commands:\n"
+                        << "\tgenerateData\t\tGenerate users and transactions\n"
+                        << "\tmineBlock\t\tMine one block\n"
+                        << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
+                        << "\tshowBlock\t\tGet information about block\n"
+                        << "\tshowTransaction\t\tGet information about transaction\n";
+        }
+    }
 }
