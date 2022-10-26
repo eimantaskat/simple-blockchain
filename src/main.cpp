@@ -71,11 +71,13 @@ int main() {
             break;
         } else if (input == "help") {
             std::cout << "Commands:\n"
+                        << "\thelp\t\t\tShow this view\n"
                         << "\tgenerateData\t\tGenerate users and transactions\n"
                         << "\tmineBlock\t\tMine one block\n"
                         << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
                         << "\tshowBlock\t\tGet information about block\n"
-                        << "\tshowTransaction\t\tGet information about transaction\n";
+                        << "\tshowTransaction\t\tGet information about transaction\n"
+                        << "\tquit\t\t\tClose blockchain\n";
         }
     }
 }
