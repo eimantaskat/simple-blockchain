@@ -301,6 +301,7 @@ void Blockchain::complete_transaction(std::string tx_id) {
                                             });
 
     double spent_tx_amount = 0;
+    std::vector< std::vector<Blockchain::txo>::iterator > spent_transactions;
     for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
         if (spent_tx_amount >= current_tx_it->amount) {
             break;
@@ -314,8 +315,12 @@ void Blockchain::complete_transaction(std::string tx_id) {
                                             [&](const transaction& t) {
                                                 return t.id == txo_it->transaction_id;
                                             });
+
                 for (auto input_txo_it = input_it->out.begin(); input_txo_it != input_it->out.end(); ++input_txo_it) {
-                    input_txo_it->unspent = false;
+                    if (input_txo_it->to == current_tx_it->from) {
+                        spent_transactions.push_back(input_txo_it);
+                        input_txo_it->unspent = false;
+                    }
                 }
                 spent_tx_amount += txo_it->amount;
 
@@ -324,14 +329,23 @@ void Blockchain::complete_transaction(std::string tx_id) {
         }
     }
 
+    if (spent_tx_amount < current_tx_it->amount) {
+        for (auto it = spent_transactions.begin(); it != spent_transactions.end(); ++it) {
+            (*it)->unspent = true;
+        }
+        // TODO remove from block
+        return;
+    }
+
     double change = spent_tx_amount - current_tx_it->amount;
     
     // create utxos
-    txo out0 {current_tx_it->id, current_tx_it->from, change};
-    txo out1 {current_tx_it->id, current_tx_it->to, current_tx_it->amount};
+    txo out0 {current_tx_it->id, current_tx_it->from, change, true};
+    txo out1 {current_tx_it->id, current_tx_it->to, current_tx_it->amount, true};
 
     current_tx_it->out.push_back(out0);
     current_tx_it->out.push_back(out1);
+
 
     cached_transactions.push_back(*current_tx_it);
 }
@@ -343,12 +357,20 @@ void Blockchain::print_transaction(const std::string& id) {
                         << "From: " << it->from << "\n"
                         << "To: " << it->to << "\n"
                         << "Amount: " << it->amount << "\n"
-                        << "Time: " << it->time << "\n"
-                        << "In: " << it->in.size() << "\n"
-                        << "Out: " << it->out.size() << "\n";
+                        << "Time: " << it->time << "\n\n"
+                        << "Inputs:\n";
 
+            for (auto t:it->in) {
+                std::cout << "\tto: " << t.to << "\n"
+                            << "\tamount: " << t.amount << "\n"
+                            << "\tunspent: " << t.unspent << "\n\n";
+            }
+
+            std::cout << "Outputs:\n";
             for (auto t:it->out) {
-                std::cout << t.amount << " ";
+                std::cout << "\tto: " << t.to << "\n"
+                            << "\tamount: " << t.amount << "\n"
+                            << "\tunspent: " << t.unspent << "\n\n";
             }
             return;
         }

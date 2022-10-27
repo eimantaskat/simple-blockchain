@@ -123,7 +123,7 @@ void Blockchain::create_first_block() {
     std::uniform_real_distribution<double> amount_dist(100, 10000);
 
     for (user u:users) {
-        std::string from = "";
+        std::string from = "Coinbase";
         std::string to = u.public_key;
         double amount = amount_dist(mt);
         long current_time = get_epoch_time();

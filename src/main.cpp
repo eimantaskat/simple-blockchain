@@ -46,13 +46,18 @@ int main() {
     std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
     std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
 
-    bc.create_transaction(u[0].public_key, u[1].public_key, 1);
+    bc.create_transaction(u[1].public_key, u[0].public_key, 1000);
 
     bc.create_block();
     bc.mine_block();
     
     std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
     std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
+
+    // auto t = bc.get_user_transactions(u[1].public_key);
+    // for (auto tx:t) {
+    //     std::cout << tx.id << " " << tx.from << " " << tx.to << " " << tx.out[0].amount << " " << tx.out[0].unspent << " " << tx.out[1].amount << " " << tx.out[1].unspent << "\n";
+    // }
 
     // std::string input;
     // while (true) {
