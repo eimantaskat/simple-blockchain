@@ -118,7 +118,9 @@ void Blockchain::create_first_block() {
     std::vector<user> users;
     users = cached_users;
 
-    std::uniform_real_distribution<double> amount_dist(100, 1000000);
+    long unsigned int seed = get_epoch_time();
+    mt.seed(seed);
+    std::uniform_real_distribution<double> amount_dist(100, 10000);
 
     for (user u:users) {
         std::string from = "";

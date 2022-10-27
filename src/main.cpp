@@ -36,22 +36,24 @@ void generate_transactions(Blockchain &bc, int n) {
 int main() {
     Blockchain bc;
 
-    // generate_users(bc, 10);
-    // generate_transactions(bc, 1);
-    // bc.create_block();
-    // bc.mine_block();
-
-    // std::cout << bc.get_users().size() << " - users\n";
-    // std::cout << bc.get_transactions().size() << " - transactions\n";
-    // std::cout << bc.get_unvalidated_transactions().size() << " - unvalidated transactions\n";
+    // bc.create_user("u1");
+    // bc.create_user("u2");
 
     // bc.create_block();
     // bc.mine_block();
 
-    // bc.complete_transaction("28eee75d89a135432935248d7fffc100534d50eca595810240a45c75a1f25363");
+    auto u = bc.get_users();
+    std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
+    std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
 
-    // bc.print_transaction(bc.get_transactions().back().id);
+    bc.create_transaction(u[0].public_key, u[1].public_key, 1);
+
+    bc.create_block();
+    bc.mine_block();
     
+    std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
+    std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
+
     // std::string input;
     // while (true) {
     //     std::cout << "blockchain> ";

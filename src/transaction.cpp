@@ -300,10 +300,6 @@ void Blockchain::complete_transaction(std::string tx_id) {
                                                 return false;
                                             });
 
-    for (auto tx:senders_tx) {
-        std::cout << tx.from << " " << tx.to << " " << tx.amount << "\n";
-    }
-
     double spent_tx_amount = 0;
     for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
         if (spent_tx_amount >= current_tx_it->amount) {
@@ -312,12 +308,31 @@ void Blockchain::complete_transaction(std::string tx_id) {
 
         for (auto txo_it = it->out.begin(); txo_it != it->out.end(); ++txo_it) {
             if ((txo_it->to == current_tx_it->from) && txo_it->unspent) {
-                // txo_it->unspent = false;
+                // mark input utxo as spent
+                auto input_it = std::find_if(cached_transactions.begin(),
+                                            cached_transactions.end(),
+                                            [&](const transaction& t) {
+                                                return t.id == txo_it->transaction_id;
+                                            });
+                for (auto input_txo_it = input_it->out.begin(); input_txo_it != input_it->out.end(); ++input_txo_it) {
+                    input_txo_it->unspent = false;
+                }
                 spent_tx_amount += txo_it->amount;
+
+                current_tx_it->in.push_back(*txo_it);
             }
         }
     }
-    std::cout << "amount: " << spent_tx_amount << "\n";
+
+    double change = spent_tx_amount - current_tx_it->amount;
+    
+    // create utxos
+    txo out0 {current_tx_it->id, current_tx_it->from, change};
+    txo out1 {current_tx_it->id, current_tx_it->to, current_tx_it->amount};
+
+    current_tx_it->out.push_back(out0);
+    current_tx_it->out.push_back(out1);
+
     cached_transactions.push_back(*current_tx_it);
 }
 

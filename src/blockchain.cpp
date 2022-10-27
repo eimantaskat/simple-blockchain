@@ -16,8 +16,6 @@ Blockchain::Blockchain() {
 
     read_users();
     read_transactions();
-    std::cout << "First in/out size " << cached_transactions.front().in.size() << " " << cached_transactions.front().out.size() << "\n";
-    std::cout << "Last in/out size " << cached_transactions.back().in.size() << " " << cached_transactions.back().out.size() << "\n";
     read_unvalidated_transactions();
 }
 
