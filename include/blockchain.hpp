@@ -179,7 +179,7 @@ class Blockchain {
         std::stringstream generate_unvalidated_transactions_buffer();
 
         void trunc_unvalidated_transactions_file(const int& size);
-        void complete_transaction(std::string tx_id);
+        bool complete_transaction(std::string tx_id);
         void print_transaction(const std::string& id);
 
 

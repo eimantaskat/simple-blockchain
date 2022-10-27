@@ -282,7 +282,7 @@ void Blockchain::trunc_unvalidated_transactions_file(const int& size) {
     // std::cout << "done\n";
 }
 
-void Blockchain::complete_transaction(std::string tx_id) {
+bool Blockchain::complete_transaction(std::string tx_id) {
     auto current_tx_it = std::find_if(cached_unvalidated_transactions.begin(),
                                             cached_unvalidated_transactions.end(),
                                             [&](const transaction& t) {
@@ -333,8 +333,7 @@ void Blockchain::complete_transaction(std::string tx_id) {
         for (auto it = spent_transactions.begin(); it != spent_transactions.end(); ++it) {
             (*it)->unspent = true;
         }
-        // TODO remove from block
-        return;
+        return false;
     }
 
     double change = spent_tx_amount - current_tx_it->amount;
@@ -348,6 +347,7 @@ void Blockchain::complete_transaction(std::string tx_id) {
 
 
     cached_transactions.push_back(*current_tx_it);
+    return true;
 }
 
 void Blockchain::print_transaction(const std::string& id) {

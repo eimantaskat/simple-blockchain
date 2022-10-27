@@ -12,6 +12,21 @@ void Blockchain::mine_block() {
     block mineable_block;
     mineable_block = get_block_to_mine();
 
+    if (mineable_block.height != 0) {
+        // for (std::string tx_id:mineable_block.tx) {
+        auto it = mineable_block.tx.begin();
+        while (it != mineable_block.tx.end()) {
+            bool success = complete_transaction(*it);
+
+            // erase from block if failed
+            if (!success) {
+                it = mineable_block.tx.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+
     std::string prev_block_hash = mineable_block.prev_block_hash;
     std::string timestamp = std::to_string(mineable_block.time);
     std::string version = mineable_block.version;
@@ -46,9 +61,9 @@ void Blockchain::mine_block() {
 
 
     if (mined_block.height != 0) {
-        for (std::string tx_id:mined_block.tx) {
-            complete_transaction(tx_id);
-        }
+        // for (std::string tx_id:mined_block.tx) {
+        //     complete_transaction(tx_id);
+        // }
 
         int file_size = cached_unvalidated_transactions.size() - tx_amount;
         cached_unvalidated_transactions.resize(file_size);
