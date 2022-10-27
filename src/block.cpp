@@ -37,7 +37,6 @@ void Blockchain::mine_block() {
     mineable_block.hash = hash;
     mined_block = mineable_block;
 
-    // istrinti i bloka paimtas tranzakcijas
     std::vector<transaction> transactions = cached_unvalidated_transactions;
 
     int tx_amount = max_block_tx;
@@ -45,13 +44,13 @@ void Blockchain::mine_block() {
         tx_amount = transactions.size();
     }
 
-    int file_size = cached_unvalidated_transactions.size() - tx_amount;
-
-    for (std::string tx_id:mined_block.tx) {
-        complete_transaction(tx_id);
-    }
 
     if (mined_block.height != 0) {
+        for (std::string tx_id:mined_block.tx) {
+            complete_transaction(tx_id);
+        }
+
+        int file_size = cached_unvalidated_transactions.size() - tx_amount;
         cached_unvalidated_transactions.resize(file_size);
 
         // trunc_unvalidated_transactions_file(file_size);
@@ -60,6 +59,8 @@ void Blockchain::mine_block() {
 
     int result = remove(block_to_mine_file.c_str());
     write_to_disk("block");
+    write_to_disk("transactions");
+    write_to_disk("unvalidated_transactions");
     
     blockchain_height++;
 }
@@ -79,17 +80,6 @@ void Blockchain::create_block() {
     }
 
     std::vector<transaction> tx(transactions.end() - tx_amount, transactions.end());
-    
-    // validate transactions
-    // for (int i = 0; i < tx.size(); i++) {
-    //     tx[i] = validate_transaction(tx[i]);
-    // }
-
-    // tx.erase(std::remove_if(
-    //     tx.begin(), tx.end(),
-    //     [](const transaction& t) { 
-    //         return t.id == "";
-    //     }), tx.end());
 
     // ---
     block prev_block = get_best_block();
@@ -114,7 +104,6 @@ void Blockchain::create_block() {
     new_block.tx = tx_str;
 
     if (!file_exists(block_to_mine_file)) {
-        write_to_disk("transactions");
         block_to_mine = new_block;
         write_to_disk("block_to_mine");
     }

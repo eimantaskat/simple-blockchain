@@ -57,8 +57,8 @@ void Blockchain::read_users() {
 
     std::vector<user> users;
     std::string line;
-    user u;
     while (getline(buffer, line, '~')) {
+        user u;
         u.name = line;
 
         getline(buffer, line, '~');

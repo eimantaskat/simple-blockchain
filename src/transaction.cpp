@@ -43,8 +43,8 @@ void Blockchain::read_transactions() {
 
     std::vector<transaction> transactions;
     std::string line;
-    transaction t;
     while (getline(buffer, line, '~')) {
+        transaction t;
         t.id = line;
 
         getline(buffer, line, '~');
@@ -130,8 +130,8 @@ void Blockchain::read_unvalidated_transactions() {
 
     std::vector<transaction> transactions;
     std::string line;
-    transaction t;
     while (getline(buffer, line, '~')) {
+        transaction t;
         t.id = line;
 
         getline(buffer, line, '~');
@@ -283,23 +283,58 @@ void Blockchain::trunc_unvalidated_transactions_file(const int& size) {
 }
 
 void Blockchain::complete_transaction(std::string tx_id) {
-    for(std::vector<transaction>::iterator it = cached_unvalidated_transactions.begin(); it != cached_unvalidated_transactions.end(); ++it) {
-        if ((*it).id == tx_id) {
-            cached_transactions.push_back(*it);
+    auto current_tx_it = std::find_if(cached_unvalidated_transactions.begin(),
+                                            cached_unvalidated_transactions.end(),
+                                            [&](const transaction& t) {
+                                                return t.id == tx_id;
+                                            });
+
+    std::vector<transaction> senders_tx;
+    std::copy_if(cached_transactions.begin(), cached_transactions.end(), std::back_inserter(senders_tx), 
+                                            [&](transaction tx) {
+                                                for (txo t:tx.out) {
+                                                    if ((t.to == current_tx_it->from) && t.unspent) {
+                                                        return true;
+                                                    }
+                                                }
+                                                return false;
+                                            });
+
+    for (auto tx:senders_tx) {
+        std::cout << tx.from << " " << tx.to << " " << tx.amount << "\n";
+    }
+
+    double spent_tx_amount = 0;
+    for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
+        if (spent_tx_amount >= current_tx_it->amount) {
+            break;
+        }
+
+        for (auto txo_it = it->out.begin(); txo_it != it->out.end(); ++txo_it) {
+            if ((txo_it->to == current_tx_it->from) && txo_it->unspent) {
+                // txo_it->unspent = false;
+                spent_tx_amount += txo_it->amount;
+            }
         }
     }
+    std::cout << "amount: " << spent_tx_amount << "\n";
+    cached_transactions.push_back(*current_tx_it);
 }
 
 void Blockchain::print_transaction(const std::string& id) {
     for(std::vector<transaction>::iterator it = cached_transactions.begin(); it != cached_transactions.end(); ++it) {
-        if ((*it).id == id) {
-            std::cout << "Id: " << (*it).id << "\n"
-                        << "From: " << (*it).from << "\n"
-                        << "To: " << (*it).to << "\n"
-                        << "Amount: " << (*it).amount << "\n"
-                        << "Time: " << (*it).time << "\n";
-                        // << "In: " << (*it).in.size() << "\n"
-                        // << "Out: " << (*it).out.size() << "\n";
+        if (it->id == id) {
+            std::cout << "Id: " << it->id << "\n"
+                        << "From: " << it->from << "\n"
+                        << "To: " << it->to << "\n"
+                        << "Amount: " << it->amount << "\n"
+                        << "Time: " << it->time << "\n"
+                        << "In: " << it->in.size() << "\n"
+                        << "Out: " << it->out.size() << "\n";
+
+            for (auto t:it->out) {
+                std::cout << t.amount << " ";
+            }
             return;
         }
     }

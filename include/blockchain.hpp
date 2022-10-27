@@ -10,6 +10,7 @@
 #include <thread>
 #include <sys/stat.h>
 #include <random>
+#include <algorithm>
 #include <cstdio>
 
 #include <iostream>
@@ -245,7 +246,7 @@ class Blockchain {
         std::vector<transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
-        int difficulity_target = 4;
+        int difficulity_target = 2;
         int blockchain_height = 0;
         int max_block_tx = 100;
 
