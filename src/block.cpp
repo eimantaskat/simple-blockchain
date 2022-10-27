@@ -30,9 +30,7 @@ void Blockchain::mine_block() {
         std::string str_nonce = std::to_string(nonce);
 
         std::string value_to_hash = prev_block_hash + timestamp + version + merkleroot + str_nonce + difficulity_target;
-        // TODO improve my hash
-        // hash = hash256.hash(value_to_hash);
-        hash = sha256(value_to_hash);
+        hash = hash256.hash(value_to_hash);
     } while (hash.substr(0, diff_target) != padding);
 
     std::cout << "Block mined! Hash: " << hash << "\n";

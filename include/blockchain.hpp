@@ -15,7 +15,6 @@
 #include <iostream>
 
 #include "hash.hpp"
-#include "SHA256.hpp"
 
 using hrClock = std::chrono::high_resolution_clock;
 
