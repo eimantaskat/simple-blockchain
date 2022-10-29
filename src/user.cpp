@@ -67,6 +67,11 @@ void Blockchain::read_users() {
         getline(buffer, line, '~');
         u.time_created = std::stoul(line);
 
+        getline(buffer, line, '~');
+        while (line != "|") {
+            u.utx_ids.push_back(line);
+        }
+        
         cached_users.push_back(u);
     }
 }
@@ -78,6 +83,11 @@ std::stringstream Blockchain::generate_users_buffer() {
         buffer << u.name << "~"
             << u.public_key << "~"
             << u.time_created << "~";
+
+        for (std::string t_id:u.utx_ids) {
+            buffer << t_id << "~";
+        }
+        buffer << "|~";
     }
 
     return buffer;

@@ -35,16 +35,6 @@ class Blockchain {
 
         // DATA STRUCTURES
         /**
-         * @brief User data structure
-         * 
-         */
-        struct user {
-            std::string name;
-            std::string public_key;
-            long time_created;
-        };
-
-        /**
          * @brief Transaction output data structure
          * 
          */
@@ -67,6 +57,17 @@ class Blockchain {
             long time;
             std::vector<txo> in;
             std::vector<txo> out;
+        };
+
+        /**
+         * @brief User data structure
+         * 
+         */
+        struct user {
+            std::string name;
+            std::string public_key;
+            long time_created;
+            std::vector<std::string> utx_ids;
         };
 
         /**
