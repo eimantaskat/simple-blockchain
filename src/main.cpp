@@ -34,20 +34,20 @@ void generate_transactions(Blockchain &bc, int n) {
 }
 
 int main() {
-    // auto start = hrClock::now();
+    auto start = hrClock::now();
     Blockchain bc;
 
-    // generate_users(bc, 1000);
-    // generate_transactions(bc, 10000);
-    // bc.create_block();
-    // bc.mine_block();
-    // while (bc.get_unvalidated_transactions().size() > 0) {
-    //     bc.create_block();
-    //     bc.mine_block();
-    // }
-    // auto stop = hrClock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-    // std::cout << duration.count() * 1e-9;
+    generate_users(bc, 1000);
+    generate_transactions(bc, 10000);
+    bc.create_block();
+    bc.mine_block();
+    while (bc.get_unvalidated_transactions().size() > 0) {
+        bc.create_block();
+        bc.mine_block();
+    }
+    auto stop = hrClock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    std::cout << duration.count() * 1e-9;
     // ----
     // bc.create_user("u1");
     // bc.create_user("u2");
@@ -55,19 +55,19 @@ int main() {
     // bc.create_block();
     // bc.mine_block();
 
-    auto u = bc.get_users();
+    // auto u = bc.get_users();
     // std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
     // std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
 
-    bc.create_transaction(u[0].public_key, u[1].public_key, 1000);
+    // bc.create_transaction(u[0].public_key, u[1].public_key, 1000);
 
-    bc.create_block();
-    bc.mine_block();
+    // bc.create_block();
+    // bc.mine_block();
     
     // std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
     // std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
 
-    // auto t = bc.get_user_transactions(u[1].public_key);
+    // auto t = bc.get_user_transactions(u[0].public_key);
     // for (auto tx:t) {
     //     std::cout << tx.id << " " << tx.from << " " << tx.to << " " << tx.out[0].amount << " " << tx.out[0].unspent << " " << tx.out[1].amount << " " << tx.out[1].unspent << "\n";
     // }

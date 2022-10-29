@@ -290,82 +290,90 @@ bool Blockchain::complete_transaction(std::string tx_id) {
                                             [&](const transaction& t) {
                                                 return t.id == tx_id;
                                             });
+    // find sender and receiver
+    auto sender = std::find_if(cached_users.begin(),
+                                    cached_users.end(),
+                                    [&](const user& u) {
+                                        return u.public_key == current_tx_it->from;
+                                    });
+
+    auto receiver = std::find_if(cached_users.begin(),
+                                    cached_users.end(),
+                                    [&](const user& u) {
+                                        return u.public_key == current_tx_it->to;
+                                    });
 
     // find all transactions where sender participated
-    // std::unordered_map<std::string, transaction> senders_tx;
-    // for (auto it = cached_transactions.begin(); it != cached_transactions.end(); ++it) {
-    //     auto tx_out = it->second.out;
-    //     std::cout << tx_out.size() << "\n";
-        
-    //     for (auto txo:tx_out) {
-    //         if ((txo.to == current_tx_it->from) && txo.unspent) {
-    //             senders_tx.emplace(txo.transaction_id, it->second);
-    //         }
-    //     }
-    // }
+    auto senders_tx_ids = sender->utx_ids;
+
+    std::vector<transaction> senders_tx;
+    for (auto tx_ids_it = senders_tx_ids.begin(); tx_ids_it != senders_tx_ids.end(); ++tx_ids_it) {
+        transaction tx;
+        auto pair = cached_transactions.find(*tx_ids_it);
+        tx = pair->second;
+        senders_tx.push_back(tx);
+    }
     
-    // std::cout << senders_tx.size() << senders_tx[0].id << "\n";
-    return false;
+    // loop through senders transactions
+    double spent_tx_amount = 0;
+    std::vector<std::vector<Blockchain::txo>::iterator> spent_transactions;
+    for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
+        // if he has enough money break the loop
+        if (spent_tx_amount >= current_tx_it->amount) {
+            break;
+        }
 
-    // // loop through senders transactions
-    // double spent_tx_amount = 0;
-    // std::vector< std::vector<Blockchain::txo>::iterator > spent_transactions;
-    // for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
-    //     // if he has enough money break the loop
-    //     if (spent_tx_amount >= current_tx_it->amount) {
-    //         break;
-    //     }
+        // loop through tx outputs
+        for (auto txo_it = it->out.begin(); txo_it != it->out.end(); ++txo_it) {
+            // if sender received money and that txo is unspent
+            if ((txo_it->to == current_tx_it->from) && txo_it->unspent) {
 
-    //     // loop through tx outputs
-    //     for (auto txo_it = it->out.begin(); txo_it != it->out.end(); ++txo_it) {
-    //         // if sender received money and that txo is unspent
-    //         if ((txo_it->to == current_tx_it->from) && txo_it->unspent) {
-    //             // find unspent transaction in confirmed tx pool
-    //             auto input_it = std::find_if(cached_transactions.begin(),
-    //                                         cached_transactions.end(),
-    //                                         [&](const transaction& t) {
-    //                                             return t.id == txo_it->transaction_id;
-    //                                         });
+                // find unspent transaction in confirmed tx pool
+                auto input = cached_transactions.find(txo_it->transaction_id);
 
-    //             // loop through its outputs
-    //             for (auto input_txo_it = input_it->out.begin(); input_txo_it != input_it->out.end(); ++input_txo_it) {
-    //                 // mark output that sender has received as spent
-    //                 if (input_txo_it->to == current_tx_it->from) {
-    //                     spent_transactions.push_back(input_txo_it);
-    //                     input_txo_it->unspent = false;
-    //                 }
-    //             }
+                // loop through its outputs
+                for (auto input_txo_it = input->second.out.begin(); input_txo_it != input->second.out.end(); ++input_txo_it) {
+                    // mark output that sender has received as spent
+                    if (input_txo_it->to == current_tx_it->from) {
+                        spent_transactions.push_back(input_txo_it);
+                        input_txo_it->unspent = false;
+                    }
+                }
                 
-    //             spent_tx_amount += txo_it->amount;
+                // add spent txo to new transaction's input
+                current_tx_it->in.push_back(*txo_it);
+                spent_tx_amount += txo_it->amount;
+            }
+        }
+    }
 
-    //             // add spent tox to new transaction's input
-    //             current_tx_it->in.push_back(*txo_it);
-    //         }
-    //     }
-    // }
+    // if sender doesn't have enough money to complete this transaction
+    if (spent_tx_amount < current_tx_it->amount) {
+        // mark spent txo for this transaction as unspent
+        for (auto it = spent_transactions.begin(); it != spent_transactions.end(); ++it) {
+            (*it)->unspent = true;
+        }
+        // cancel transaction
+        return false;
+    }
 
-    // // if sender doesn't have enough money to complete this transaction
-    // if (spent_tx_amount < current_tx_it->amount) {
-    //     // mark spent txo for this transaction as unspent
-    //     for (auto it = spent_transactions.begin(); it != spent_transactions.end(); ++it) {
-    //         (*it)->unspent = true;
-    //     }
-    //     // cancel transaction
-    //     return false;
-    // }
-
-    // double change = spent_tx_amount - current_tx_it->amount;
+    double change = spent_tx_amount - current_tx_it->amount;
     
-    // // create utxos
-    // txo out0 {current_tx_it->id, current_tx_it->from, change, true};
-    // txo out1 {current_tx_it->id, current_tx_it->to, current_tx_it->amount, true};
+    // create utxos
+    txo out0 {current_tx_it->id, current_tx_it->from, change, true};
+    txo out1 {current_tx_it->id, current_tx_it->to, current_tx_it->amount, true};
 
-    // current_tx_it->out.push_back(out0);
-    // current_tx_it->out.push_back(out1);
+    current_tx_it->out.push_back(out0);
+    current_tx_it->out.push_back(out1);
 
+    std::string current_tx_id;
+    current_tx_id = current_tx_it->id;
 
-    // cached_transactions.push_back(*current_tx_it);
-    // return true;
+    sender->utx_ids.push_back(current_tx_id);
+    receiver->utx_ids.push_back(current_tx_id);
+
+    cached_transactions.emplace(current_tx_id, *current_tx_it);
+    return true;
 }
 
 void Blockchain::print_transaction(const std::string& id) {

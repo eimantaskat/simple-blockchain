@@ -48,7 +48,7 @@ void Blockchain::mine_block() {
         hash = hash256.hash(value_to_hash);
     } while (hash.substr(0, diff_target) != padding);
 
-    // std::cout << "Block mined! Hash: " << hash << "\n";
+    std::cout << "Block mined! Hash: " << hash << "\n";
     mineable_block.hash = hash;
     mined_block = mineable_block;
 

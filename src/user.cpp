@@ -70,6 +70,7 @@ void Blockchain::read_users() {
         getline(buffer, line, '~');
         while (line != "|") {
             u.utx_ids.push_back(line);
+            getline(buffer, line, '~');
         }
         
         cached_users.push_back(u);
