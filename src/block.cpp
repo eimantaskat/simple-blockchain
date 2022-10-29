@@ -158,6 +158,13 @@ void Blockchain::create_first_block() {
         transaction new_transaction {transaction_id, from, to, amount, current_time, in, out};
 
         cached_transactions[new_transaction.id] = new_transaction;
+
+        auto receiver = std::find_if(cached_users.begin(),
+                                    cached_users.end(),
+                                    [&](const user& u) {
+                                        return u.public_key == new_transaction.to;
+                                    });
+        receiver->utx_ids.push_back(transaction_id);
     }
 
     std::string prev_block_hash = hash256.hash("");

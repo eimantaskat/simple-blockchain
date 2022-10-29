@@ -37,17 +37,6 @@ class Blockchain {
 
         // DATA STRUCTURES
         /**
-         * @brief User data structure
-         * 
-         */
-        struct user {
-            std::string name;
-            std::string public_key;
-            long time_created;
-            std::vector<transaction>
-        };
-
-        /**
          * @brief Transaction output data structure
          * 
          */
@@ -77,6 +66,17 @@ class Blockchain {
             bool operator<(const transaction &t) const {
                 return id < t.id;
             }
+        };
+
+        /**
+         * @brief User data structure
+         * 
+         */
+        struct user {
+            std::string name;
+            std::string public_key;
+            long time_created;
+            std::vector<std::string> utx_ids;
         };
 
         /**
