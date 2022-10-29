@@ -81,7 +81,7 @@ std::string Hash::compress(std::vector<char> hex, int length) {
     int size = hex.size();
 
     while (size > length) {
-        char last = *(hex.begin() + size);
+        char last = *(hex.begin() + size - 1);
         int index = size % length;
         
         char newValue = last + hex[index];
