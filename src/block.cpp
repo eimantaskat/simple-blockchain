@@ -48,7 +48,7 @@ void Blockchain::mine_block() {
         hash = hash256.hash(value_to_hash);
     } while (hash.substr(0, diff_target) != padding);
 
-    std::cout << "Block mined! Hash: " << hash << "\n";
+    // std::cout << "Block mined! Hash: " << hash << "\n";
     mineable_block.hash = hash;
     mined_block = mineable_block;
 
@@ -157,15 +157,16 @@ void Blockchain::create_first_block() {
 
         transaction new_transaction {transaction_id, from, to, amount, current_time, in, out};
 
-        cached_transactions.push_back(new_transaction);
+        cached_transactions[new_transaction.id] = new_transaction;
     }
 
     std::string prev_block_hash = hash256.hash("");
     long time = get_epoch_time();
 
     std::vector<std::string> tx_ids;
-    for (transaction t : cached_transactions) {
-        tx_ids.push_back(t.id);
+    for (auto t : cached_transactions) {
+        transaction tx = t.second;
+        tx_ids.push_back(tx.id);
     }
 
     std::string merkleroot = get_merkleroot(tx_ids);

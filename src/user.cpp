@@ -17,11 +17,11 @@ void Blockchain::create_user(const std::string& name) {
 std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std::string& public_key, bool unspent) {
     std::vector<transaction> user_transactions;
     
-    std::vector<transaction> tx = get_transactions();
+    auto tx = get_transactions();
 
-    for (transaction t:tx) {
-        if (t.from == public_key || t.to == public_key) {
-            user_transactions.push_back(t);
+    for (auto t:tx) {
+        if (t.second.from == public_key || t.second.to == public_key) {
+            user_transactions.push_back(t.second);
         }
     }
 

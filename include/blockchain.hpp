@@ -12,6 +12,8 @@
 #include <random>
 #include <algorithm>
 #include <cstdio>
+#include <unordered_map>
+#include <utility>
 
 #include <iostream>
 
@@ -42,6 +44,7 @@ class Blockchain {
             std::string name;
             std::string public_key;
             long time_created;
+            std::vector<transaction>
         };
 
         /**
@@ -67,6 +70,13 @@ class Blockchain {
             long time;
             std::vector<txo> in;
             std::vector<txo> out;
+
+            bool operator==(const transaction &t) const {
+                return id == t.id;
+            }
+            bool operator<(const transaction &t) const {
+                return id < t.id;
+            }
         };
 
         /**
@@ -168,7 +178,7 @@ class Blockchain {
          * @return Vector of all transactions
          */
         std::vector<transaction> get_unvalidated_transactions();
-        std::vector<transaction> get_transactions();
+        std::unordered_map<std::string, transaction> get_transactions();
 
         /**
          * @brief Generate transactions's buffer to write to file
@@ -243,7 +253,7 @@ class Blockchain {
         
         std::vector<user> cached_users;
         std::vector<transaction> cached_unvalidated_transactions;
-        std::vector<transaction> cached_transactions;
+        std::unordered_map<std::string, transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
         int difficulity_target = 2;
