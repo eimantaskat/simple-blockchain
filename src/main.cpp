@@ -37,17 +37,17 @@ int main() {
     auto start = hrClock::now();
     Blockchain bc;
 
-    generate_users(bc, 1000);
-    generate_transactions(bc, 10000);
-    bc.create_block();
-    bc.mine_block();
-    while (bc.get_unvalidated_transactions().size() > 0) {
-        bc.create_block();
-        bc.mine_block();
-    }
-    auto stop = hrClock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-    std::cout << duration.count() * 1e-9;
+    // generate_users(bc, 1000);
+    // generate_transactions(bc, 10000);
+    // bc.create_block();
+    // bc.mine_block();
+    // while (bc.get_unvalidated_transactions().size() > 0) {
+    //     bc.create_block();
+    //     bc.mine_block();
+    // }
+    // auto stop = hrClock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    // std::cout << duration.count() * 1e-9;
     // ----
     // bc.create_user("u1");
     // bc.create_user("u2");
@@ -72,52 +72,52 @@ int main() {
     //     std::cout << tx.id << " " << tx.from << " " << tx.to << " " << tx.out[0].amount << " " << tx.out[0].unspent << " " << tx.out[1].amount << " " << tx.out[1].unspent << "\n";
     // }
 
-    // std::string input;
-    // while (true) {
-    //     std::cout << "blockchain> ";
-    //     std::cin >> input;
+    std::string input;
+    while (true) {
+        std::cout << "blockchain> ";
+        std::cin >> input;
 
-    //     if (input == "generateData") {
-    //         generate_users(bc, 1000);
-    //         generate_transactions(bc, 10000);
-    //         bc.create_block();
-    //         bc.mine_block();
-    //         bc.write();
-    //         std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
-    //     } else if (input == "mineBlock") {
-    //         bc.create_block();
-    //         bc.mine_block();
-    //         bc.write();
-    //     } else if (input == "mineAllBlocks") {
-    //         while (bc.get_unvalidated_transactions().size() > 0) {
-    //             bc.create_block();
-    //             bc.mine_block();
-    //         }
-    //         bc.write();
-    //         std::cout << "No more transactions left\n";
-    //     } else if (input == "showBlock") {
-    //         int hash;
-    //         std::cout << "Block id: ";
-    //         std::cin >> hash;
-    //         bc.print_block(hash);
-    //     } else if (input == "showTransaction") {
-    //         std::string hash;
-    //         std::cout << "Transaction hash: ";
-    //         std::cin >> hash;
-    //         bc.print_transaction(hash);
-    //     } else if (input == "quit") {
-    //         break;
-    //     } else if (input == "help") {
-    //         std::cout << "Commands:\n"
-    //                     << "\thelp\t\t\tShow this view\n"
-    //                     << "\tgenerateData\t\tGenerate users and transactions\n"
-    //                     << "\tmineBlock\t\tMine one block\n"
-    //                     << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
-    //                     << "\tshowBlock\t\tGet information about block\n"
-    //                     << "\tshowTransaction\t\tGet information about transaction\n"
-    //                     << "\tquit\t\t\tClose blockchain\n";
-    //     } else {
-    //         // TODO command to found
-    //     }
-    // }
+        if (input == "generateData") {
+            generate_users(bc, 5);
+            generate_transactions(bc, 10);
+            bc.create_block();
+            bc.mine_block();
+            bc.write();
+            std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
+        } else if (input == "mineBlock") {
+            bc.create_block();
+            bc.mine_block();
+            bc.write();
+        } else if (input == "mineAllBlocks") {
+            while (bc.get_unvalidated_transactions().size() > 0) {
+                bc.create_block();
+                bc.mine_block();
+            }
+            bc.write();
+            std::cout << "No more transactions left\n";
+        } else if (input == "showBlock") {
+            int hash;
+            std::cout << "Block id: ";
+            std::cin >> hash;
+            bc.print_block(hash);
+        } else if (input == "showTransaction") {
+            std::string hash;
+            std::cout << "Transaction hash: ";
+            std::cin >> hash;
+            bc.print_transaction(hash);
+        } else if (input == "quit") {
+            break;
+        } else if (input == "help") {
+            std::cout << "Commands:\n"
+                        << "\thelp\t\t\tShow this view\n"
+                        << "\tgenerateData\t\tGenerate users and transactions\n"
+                        << "\tmineBlock\t\tMine one block\n"
+                        << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
+                        << "\tshowBlock\t\tGet information about block\n"
+                        << "\tshowTransaction\t\tGet information about transaction\n"
+                        << "\tquit\t\t\tClose blockchain\n";
+        } else {
+            // TODO command to found
+        }
+    }
 }

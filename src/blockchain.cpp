@@ -113,13 +113,39 @@ long Blockchain::get_epoch_time() {
 }
 
 std::string Blockchain::get_merkleroot(std::vector<std::string> transactions) {
-    // TODO generate merkleroot
-    std::string value_to_hash;
+    int size = transactions.size();
+    std::vector<std::string> tmp;
+    if (size % 2 == 0) {
+        tmp.reserve(size / 2);
+        for (int tx_index = 0; tx_index < size / 2; tx_index++) {
+            std::string hash;
+            std::string val_to_hash;
 
-    for (std::string tx:transactions) {
-        value_to_hash += tx;
+            val_to_hash = transactions[2 * tx_index] + transactions[2 * tx_index + 1];
+            hash = hash256.hash(val_to_hash);
+
+            tmp.push_back(hash);
+        }
+    } else {
+        std::string hash;
+        std::string val_to_hash;
+        tmp.reserve((size + 1) / 2);
+        for (int tx_index = 0; tx_index < size / 2; tx_index++) {
+
+            val_to_hash = transactions[2 * tx_index] + transactions[2 * tx_index + 1];
+            hash = hash256.hash(val_to_hash);
+
+            tmp.push_back(hash);
+        }
+        hash = hash256.hash(transactions.back());
+        tmp.push_back(hash);
     }
-    return hash256.hash(value_to_hash);
+
+    if (tmp.size() == 1) {
+        return tmp[0];
+    } else {
+        return get_merkleroot(tmp);
+    }
 }
 
 bool Blockchain::file_exists (const std::string& name) {

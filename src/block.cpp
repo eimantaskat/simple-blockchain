@@ -30,7 +30,7 @@ void Blockchain::mine_block() {
     std::string prev_block_hash = mineable_block.prev_block_hash;
     std::string timestamp = std::to_string(mineable_block.time);
     std::string version = mineable_block.version;
-    std::string merkleroot = mineable_block.merkleroot;
+    std::string merkleroot = get_merkleroot(mineable_block.tx);
 
     int diff_target = mineable_block.difficulity_target;
     std::string difficulity_target = std::to_string(diff_target);
@@ -54,6 +54,7 @@ void Blockchain::mine_block() {
     }
 
     std::cout << "Block mined! Hash: " << hash << "\n";
+    mineable_block.merkleroot = merkleroot;
     mineable_block.hash = hash;
     mined_block = mineable_block;
 
@@ -119,7 +120,6 @@ void Blockchain::create_block() {
     new_block.prev_block_hash = prev_block_hash;
     new_block.time = time;
     new_block.version = blockchain_version;
-    new_block.merkleroot = merkleroot;
     new_block.difficulity_target = difficulity_target;
     new_block.tx = tx_str;
 
