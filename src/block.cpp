@@ -35,18 +35,23 @@ void Blockchain::mine_block() {
     int diff_target = mineable_block.difficulity_target;
     std::string difficulity_target = std::to_string(diff_target);
 
-    std::uniform_int_distribution<unsigned long long> nonce_dist(0, ULLONG_MAX);
-
     std::string padding (diff_target, '0');
     
     std::string hash;
-    do {
-        unsigned long long nonce = nonce_dist(mt);
+    for (unsigned long long nonce = 0; ; ++nonce) {
         std::string str_nonce = std::to_string(nonce);
 
         std::string value_to_hash = prev_block_hash + timestamp + version + merkleroot + str_nonce + difficulity_target;
         hash = hash256.hash(value_to_hash);
-    } while (hash.substr(0, diff_target) != padding);
+        if (hash.substr(0, diff_target) == padding) {
+            break;
+        }
+        if (nonce == ULLONG_MAX) {
+            mineable_block.time = get_epoch_time();
+            timestamp = std::to_string(mineable_block.time);
+            nonce = 0;
+        }
+    }
 
     std::cout << "Block mined! Hash: " << hash << "\n";
     mineable_block.hash = hash;
