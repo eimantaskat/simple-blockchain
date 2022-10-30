@@ -78,8 +78,8 @@ int main() {
         std::cin >> input;
 
         if (input == "generateData") {
-            generate_users(bc, 5);
-            generate_transactions(bc, 10);
+            generate_users(bc, 10);
+            generate_transactions(bc, 10000);
             bc.create_block();
             bc.mine_block();
             bc.write();

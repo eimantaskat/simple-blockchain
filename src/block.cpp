@@ -16,9 +16,22 @@ void Blockchain::mine_block() {
         // for (std::string tx_id:mineable_block.tx) {
         auto it = mineable_block.tx.begin();
         while (it != mineable_block.tx.end()) {
-            bool success = complete_transaction(*it);
+            // check if tx hash == tx id
+            // find current tx by id
+            auto current_tx_it = std::find_if(cached_unvalidated_transactions.begin(),
+                                                    cached_unvalidated_transactions.end(),
+                                                    [&](const transaction& t) {
+                                                        return t.id == *it;
+                                                    });
+            std::string val_to_hash = current_tx_it->from + current_tx_it->to + std::to_string(current_tx_it->amount) + std::to_string(current_tx_it->time);
+            std::string hash = hash256.hash(val_to_hash);
 
-            // erase from block if failed
+            bool success = false;
+            if (hash == *it) {
+                success = complete_transaction(*it, current_tx_it);
+            }
+
+            // erase from block if verification failed
             if (!success) {
                 it = mineable_block.tx.erase(it);
             } else {

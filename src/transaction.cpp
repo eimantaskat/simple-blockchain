@@ -283,13 +283,7 @@ void Blockchain::trunc_unvalidated_transactions_file(const int& size) {
     // std::cout << "done\n";
 }
 
-bool Blockchain::complete_transaction(std::string tx_id) {
-    // find current tx by given id
-    auto current_tx_it = std::find_if(cached_unvalidated_transactions.begin(),
-                                            cached_unvalidated_transactions.end(),
-                                            [&](const transaction& t) {
-                                                return t.id == tx_id;
-                                            });
+bool Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it) {
     // find sender and receiver
     auto sender = std::find_if(cached_users.begin(),
                                     cached_users.end(),
