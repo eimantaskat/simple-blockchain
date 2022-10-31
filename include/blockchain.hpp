@@ -189,7 +189,7 @@ class Blockchain {
         std::stringstream generate_unvalidated_transactions_buffer();
 
         void erase_transactions(const std::vector<std::string>& transactions);
-        bool complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it);
+        transaction complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it);
         void print_transaction(const std::string& id);
         std::vector<std::string> select_random_transactions();
 

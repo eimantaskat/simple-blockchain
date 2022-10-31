@@ -35,6 +35,7 @@ void generate_transactions(Blockchain &bc, int n) {
 
 int main() {
     Blockchain bc;
+    // bc.decentralized_mining();
 
     std::string input;
     while (true) {

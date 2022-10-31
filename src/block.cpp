@@ -4,15 +4,14 @@
 // PUBLIC METHODS
 
 void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int& max_guesses) {
+    std::vector<transaction> validated_tx;
+    validated_tx.reserve(max_block_tx);
+
     std::vector<std::string> transactions;
     transactions = mineable_block.tx;
 
     if (mineable_block.height != 0) {
-        // for (std::string tx_id:mineable_block.tx) {
-        auto it = mineable_block.tx.begin();
-        while (it != mineable_block.tx.end()) {
-            // check if tx hash == tx id
-            // find current tx by id
+        for (auto it = mineable_block.tx.begin(); it != mineable_block.tx.end(); ++it) {
             auto current_tx_it = std::find_if(cached_unvalidated_transactions.begin(),
                                                     cached_unvalidated_transactions.end(),
                                                     [&](const transaction& t) {
@@ -21,17 +20,10 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
             std::string val_to_hash = current_tx_it->from + current_tx_it->to + std::to_string(current_tx_it->amount) + std::to_string(current_tx_it->time);
             std::string hash = hash256.hash(val_to_hash);
 
-            bool success = false;
-            // FIXME hashes dont match, problem not with my hash
-            // if (hash == *it) {
-                success = complete_transaction(*it, current_tx_it);
-            // }
-
-            // erase from block if verification failed
-            if (!success) {
-                it = mineable_block.tx.erase(it);
-            } else {
-                ++it;
+            transaction validated = complete_transaction(*it, current_tx_it);
+            
+            if (validated.id.size() != 0) {
+                validated_tx.push_back(validated);
             }
         }
     }
@@ -41,10 +33,10 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
     std::string version = mineable_block.version;
 
     std::vector<std::string> tmp;
-    for (auto tx_it = mineable_block.tx.begin(); tx_it != mineable_block.tx.end(); ++tx_it) {
-        tmp.push_back(hash256.hash(*tx_it));
+    for (auto tx_it = validated_tx.begin(); tx_it != validated_tx.end(); ++tx_it) {
+        // tmp.push_back(hash256.hash(tx_it->id));
+        tmp.push_back(tx_it->id);
     }
-    std::cout << mineable_block.tx.size() << "\n";
     std::string merkleroot = get_merkleroot(tmp);
 
     int diff_target = mineable_block.difficulity_target;
@@ -81,6 +73,29 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
 
     if (mined_block.height != 0) {
         erase_transactions(transactions);
+    }
+
+    for (auto tx_it = validated_tx.begin(); tx_it != validated_tx.end(); ++tx_it) {
+        auto sender = std::find_if(cached_users.begin(),
+                                    cached_users.end(),
+                                    [&](const user& u) {
+                                        return u.public_key == tx_it->from;
+                                    });
+
+        auto receiver = std::find_if(cached_users.begin(),
+                                        cached_users.end(),
+                                        [&](const user& u) {
+                                            return u.public_key == tx_it->to;
+                                        });
+
+        std::string current_tx_id;
+        current_tx_id = tx_it->id;
+
+        sender->utx_ids.push_back(current_tx_id);
+        receiver->utx_ids.push_back(current_tx_id);
+
+        cached_transactions.emplace(current_tx_id, *tx_it);
+        cached_transactions.emplace(tx_it->id, *tx_it);
     }
 
     write_to_disk("block");

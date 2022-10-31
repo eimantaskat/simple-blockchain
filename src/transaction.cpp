@@ -263,18 +263,12 @@ void Blockchain::erase_transactions(const std::vector<std::string>& transactions
     }
 }
 
-bool Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it) {
+Blockchain::transaction Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it) {
     // find sender and receiver
     auto sender = std::find_if(cached_users.begin(),
                                     cached_users.end(),
                                     [&](const user& u) {
                                         return u.public_key == current_tx_it->from;
-                                    });
-
-    auto receiver = std::find_if(cached_users.begin(),
-                                    cached_users.end(),
-                                    [&](const user& u) {
-                                        return u.public_key == current_tx_it->to;
                                     });
 
     // find all transactions where sender participated
@@ -284,8 +278,12 @@ bool Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain:
     for (auto tx_ids_it = senders_tx_ids.begin(); tx_ids_it != senders_tx_ids.end(); ++tx_ids_it) {
         transaction tx;
         auto pair = cached_transactions.find(*tx_ids_it);
-        tx = pair->second;
-        senders_tx.push_back(tx);
+        if (pair != cached_transactions.end()) {
+            tx = pair->second;
+            senders_tx.push_back(tx);
+        } else {
+            std::cout << "nothin found\n";
+        }
     }
     
     // loop through senders transactions
@@ -328,7 +326,7 @@ bool Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain:
             (*it)->unspent = true;
         }
         // cancel transaction
-        return false;
+        return transaction{};
     }
 
     double change = spent_tx_amount - current_tx_it->amount;
@@ -340,14 +338,14 @@ bool Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain:
     current_tx_it->out.push_back(out0);
     current_tx_it->out.push_back(out1);
 
-    std::string current_tx_id;
-    current_tx_id = current_tx_it->id;
+    // std::string current_tx_id;
+    // current_tx_id = current_tx_it->id;
 
-    sender->utx_ids.push_back(current_tx_id);
-    receiver->utx_ids.push_back(current_tx_id);
+    // sender->utx_ids.push_back(current_tx_id);
+    // receiver->utx_ids.push_back(current_tx_id);
 
-    cached_transactions.emplace(current_tx_id, *current_tx_it);
-    return true;
+    // cached_transactions.emplace(current_tx_id, *current_tx_it);
+    return *current_tx_it;
 }
 
 void Blockchain::print_transaction(const std::string& id) {
