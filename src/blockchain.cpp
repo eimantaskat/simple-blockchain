@@ -113,6 +113,10 @@ long Blockchain::get_epoch_time() {
 }
 
 std::string Blockchain::get_merkleroot(std::vector<std::string> transactions) {
+    for (auto tx_it = transactions.begin(); tx_it != transactions.end(); ++tx_it) {
+        *tx_it = hash256.hash(*tx_it);
+    }
+    
     int size = transactions.size();
     std::vector<std::string> tmp;
     if (size % 2 == 0) {
