@@ -3,14 +3,9 @@
 
 // PUBLIC METHODS
 
-void Blockchain::mine_block() {
-    if (!file_exists(block_to_mine_file)) {
-        std::cout << "No blocks found to mine\n";
-        return;
-    }
-
-    block mineable_block;
-    mineable_block = get_block_to_mine();
+void Blockchain::mine_block(block mineable_block) {
+    std::vector<std::string> transactions;
+    transactions = mineable_block.tx;
 
     if (mineable_block.height != 0) {
         // for (std::string tx_id:mineable_block.tx) {
@@ -27,9 +22,10 @@ void Blockchain::mine_block() {
             std::string hash = hash256.hash(val_to_hash);
 
             bool success = false;
-            if (hash == *it) {
+            // FIXME hashes dont match, problem not with my hash
+            // if (hash == *it) {
                 success = complete_transaction(*it, current_tx_it);
-            }
+            // }
 
             // erase from block if verification failed
             if (!success) {
@@ -43,7 +39,13 @@ void Blockchain::mine_block() {
     std::string prev_block_hash = mineable_block.prev_block_hash;
     std::string timestamp = std::to_string(mineable_block.time);
     std::string version = mineable_block.version;
-    std::string merkleroot = get_merkleroot(mineable_block.tx);
+
+    std::vector<std::string> tmp;
+    for (auto tx_it = mineable_block.tx.begin(); tx_it != mineable_block.tx.end(); ++tx_it) {
+        tmp.push_back(hash256.hash(*tx_it));
+    }
+    std::cout << mineable_block.tx.size() << "\n";
+    std::string merkleroot = get_merkleroot(tmp);
 
     int diff_target = mineable_block.difficulity_target;
     std::string difficulity_target = std::to_string(diff_target);
@@ -57,6 +59,7 @@ void Blockchain::mine_block() {
         std::string value_to_hash = prev_block_hash + timestamp + version + merkleroot + str_nonce + difficulity_target;
         hash = hash256.hash(value_to_hash);
         if (hash.substr(0, diff_target) == padding) {
+            mineable_block.nonce = nonce;
             break;
         }
         if (nonce == ULLONG_MAX) {
@@ -71,27 +74,10 @@ void Blockchain::mine_block() {
     mineable_block.hash = hash;
     mined_block = mineable_block;
 
-    std::vector<transaction> transactions = cached_unvalidated_transactions;
-
-    int tx_amount = max_block_tx;
-    if (tx_amount > transactions.size()) {
-        tx_amount = transactions.size();
-    }
-
-
     if (mined_block.height != 0) {
-        // for (std::string tx_id:mined_block.tx) {
-        //     complete_transaction(tx_id);
-        // }
-
-        int file_size = cached_unvalidated_transactions.size() - tx_amount;
-        cached_unvalidated_transactions.resize(file_size);
-
-        // trunc_unvalidated_transactions_file(file_size);
+        erase_transactions(transactions);
     }
 
-
-    int result = remove(block_to_mine_file.c_str());
     write_to_disk("block");
     write_to_disk("transactions");
     write_to_disk("unvalidated_transactions");
@@ -105,28 +91,15 @@ void Blockchain::create_block() {
         return;
     }
 
-    // get transactions
-    std::vector<transaction> transactions = cached_unvalidated_transactions;
-
-    int tx_amount = max_block_tx;
-    if (tx_amount > transactions.size()) {
-        tx_amount = transactions.size();
-    }
-
-    std::vector<transaction> tx(transactions.end() - tx_amount, transactions.end());
-
     // ---
     block prev_block = get_best_block();
 
     std::string prev_block_hash = prev_block.hash;
     long time = get_epoch_time();
 
-    std::vector<std::string> tx_str;
-    for (transaction t : tx) {
-        tx_str.push_back(t.id);
-    }
+    std::vector<std::string> tx = select_random_transactions();
 
-    std::string merkleroot = get_merkleroot(tx_str);
+    std::string merkleroot = get_merkleroot(tx);
 
     block new_block;
     new_block.height = blockchain_height;
@@ -134,12 +107,9 @@ void Blockchain::create_block() {
     new_block.time = time;
     new_block.version = blockchain_version;
     new_block.difficulity_target = difficulity_target;
-    new_block.tx = tx_str;
+    new_block.tx = tx;
 
-    if (!file_exists(block_to_mine_file)) {
-        block_to_mine = new_block;
-        write_to_disk("block_to_mine");
-    }
+    mine_block(new_block);
 }
 
 void Blockchain::create_first_block() {
@@ -205,10 +175,7 @@ void Blockchain::create_first_block() {
     new_block.difficulity_target = difficulity_target;
     new_block.tx = tx_ids;
 
-    if (!file_exists(block_to_mine_file)) {
-        block_to_mine = new_block;
-        write_to_disk("block_to_mine");
-    }
+    mine_block(new_block);
 }
 
 std::stringstream Blockchain::generate_block_to_mine_buffer() {

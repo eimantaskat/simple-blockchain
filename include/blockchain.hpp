@@ -112,7 +112,7 @@ class Blockchain {
          * @brief If there is a block to mine, mine it
          * 
          */
-        void mine_block();
+        void mine_block(block mineable_block);
 
         /**
          * @brief Create a new block if there are any unconfirmed transactions
@@ -188,9 +188,10 @@ class Blockchain {
         std::stringstream generate_transactions_buffer();
         std::stringstream generate_unvalidated_transactions_buffer();
 
-        void trunc_unvalidated_transactions_file(const int& size);
+        void erase_transactions(const std::vector<std::string>& transactions);
         bool complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it);
         void print_transaction(const std::string& id);
+        std::vector<std::string> select_random_transactions();
 
 
 
@@ -256,7 +257,7 @@ class Blockchain {
         std::unordered_map<std::string, transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
-        int difficulity_target = 4;
+        int difficulity_target = 2;
         int blockchain_height = 0;
         int max_block_tx = 100;
 

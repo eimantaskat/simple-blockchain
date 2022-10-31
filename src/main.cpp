@@ -78,20 +78,17 @@ int main() {
         std::cin >> input;
 
         if (input == "generateData") {
-            generate_users(bc, 10);
+            generate_users(bc, 1000);
             generate_transactions(bc, 10000);
             bc.create_block();
-            bc.mine_block();
             bc.write();
             std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
         } else if (input == "mineBlock") {
             bc.create_block();
-            bc.mine_block();
             bc.write();
         } else if (input == "mineAllBlocks") {
             while (bc.get_unvalidated_transactions().size() > 0) {
                 bc.create_block();
-                bc.mine_block();
             }
             bc.write();
             std::cout << "No more transactions left\n";

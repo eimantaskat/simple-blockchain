@@ -17,6 +17,10 @@ Blockchain::Blockchain() {
     read_users();
     read_transactions();
     read_unvalidated_transactions();
+
+    std::cout << "Loaded " << cached_users.size() << " users\n";
+    std::cout << "Loaded " << cached_transactions.size() << " transactions\n";
+    std::cout << "Loaded " << cached_unvalidated_transactions.size() << " unvalidated transactions\n";
 }
 
 Blockchain::~Blockchain() {
@@ -113,11 +117,11 @@ long Blockchain::get_epoch_time() {
 }
 
 std::string Blockchain::get_merkleroot(std::vector<std::string> transactions) {
-    for (auto tx_it = transactions.begin(); tx_it != transactions.end(); ++tx_it) {
-        *tx_it = hash256.hash(*tx_it);
-    }
-    
     int size = transactions.size();
+    if (size == 0) {
+        return hash256.hash("");
+    }
+
     std::vector<std::string> tmp;
     if (size % 2 == 0) {
         tmp.reserve(size / 2);

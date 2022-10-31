@@ -11,7 +11,6 @@ void Blockchain::create_transaction(const std::string& from, const std::string& 
     std::string transaction_id = hash256.hash(val_to_hash);
 
     transaction new_transaction {transaction_id, from, to, amount, current_time};
-
     cached_unvalidated_transactions.push_back(new_transaction);
 }
 
@@ -254,33 +253,14 @@ std::stringstream Blockchain::generate_transactions_buffer() {
     return buffer;
 }
 
-void Blockchain::trunc_unvalidated_transactions_file(const int& size) {
-    cached_unvalidated_transactions.resize(size);
-    // std::stringstream buffer;
-
-    // std::fstream file (unvalidated_transaction_file, std::fstream::in);
-    // buffer << file.rdbuf();
-    // file.close();
-
-    // std::string file_contents;
-    // std::string line;
-    // std::string prev_line;
-    // int tx_no = 0;
-
-    // while (tx_no < size) {
-    //     getline(buffer, line, '~');
-    //     file_contents += line + "~";
-
-    //     if (prev_line == "|" && line == "|") {
-    //         tx_no++;
-    //     }
-
-    //     prev_line = line;
-    // }
-
-    // file.open(unvalidated_transaction_file, std::fstream::out);
-    // file << file_contents;
-    // std::cout << "done\n";
+void Blockchain::erase_transactions(const std::vector<std::string>& transactions) {
+    for (auto tx_it = transactions.begin(); tx_it != transactions.end(); ++tx_it) {
+        cached_unvalidated_transactions.erase(std::remove_if(
+            cached_unvalidated_transactions.begin(), cached_unvalidated_transactions.end(),
+            [&](const transaction& tx) { 
+                return tx.id == *tx_it;
+            }), cached_unvalidated_transactions.end());
+    }
 }
 
 bool Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it) {
@@ -393,4 +373,38 @@ void Blockchain::print_transaction(const std::string& id) {
                     << "\tunspent: " << t.unspent << "\n\n";
     }
     return;
+}
+
+std::vector<std::string> Blockchain::select_random_transactions() {
+    auto tx = cached_unvalidated_transactions;
+    int size = tx.size();
+
+    int tx_amount = max_block_tx;
+    if (tx_amount > size) {
+        tx_amount = size;
+    }
+
+    // Fisher-Yates shuffle
+    std::vector<std::string> rand_tx;
+    
+    std::uniform_int_distribution<int> dist(0, INT_MAX);
+    long unsigned int seed = static_cast<long unsigned int>(hrClock::now().time_since_epoch().count());
+    mt.seed(seed);
+
+    auto begin = tx.begin();
+    auto end = tx.end();
+
+    while (tx_amount > 0) {
+        auto rand_iter = begin;
+        std::advance(rand_iter, dist(mt) % size);
+        rand_tx.push_back(rand_iter->id);
+        begin++;
+        --size;
+        --tx_amount;
+    }
+
+    // for (auto t:rand_tx) {
+    //     std::cout << t << " ";
+    // }
+    return rand_tx;
 }
