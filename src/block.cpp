@@ -3,7 +3,7 @@
 
 // PUBLIC METHODS
 
-void Blockchain::mine_block(block mineable_block) {
+void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int& max_guesses) {
     std::vector<std::string> transactions;
     transactions = mineable_block.tx;
 
@@ -62,6 +62,11 @@ void Blockchain::mine_block(block mineable_block) {
             mineable_block.nonce = nonce;
             break;
         }
+        if (limit_guesses && nonce == max_guesses) {
+            std::cout << "Failed to mine block\n";
+            
+            return;
+        }
         if (nonce == ULLONG_MAX) {
             mineable_block.time = get_epoch_time();
             timestamp = std::to_string(mineable_block.time);
@@ -85,7 +90,7 @@ void Blockchain::mine_block(block mineable_block) {
     blockchain_height++;
 }
 
-void Blockchain::create_block() {
+void Blockchain::create_block(bool limit_guesses, const int& max_guesses) {
     if (blockchain_height == 0) {
         create_first_block();
         return;
@@ -109,7 +114,7 @@ void Blockchain::create_block() {
     new_block.difficulity_target = difficulity_target;
     new_block.tx = tx;
 
-    mine_block(new_block);
+    mine_block(new_block, limit_guesses, max_guesses);
 }
 
 void Blockchain::create_first_block() {

@@ -33,6 +33,15 @@ void Blockchain::write() {
     write_to_disk("transactions");
 }
 
+void Blockchain::decentralized_mining(const int& max_guesses, const int& miners) {
+    int counter = 0;
+
+    for (int miner_no = 0; miner_no < 5; ++miner_no) {
+        std::cout << "Miner: " << miner_no << "\n";
+        create_block(true);
+    }
+}
+
 // PUBLIC METHODS
 
 // TODO make writing blocks private

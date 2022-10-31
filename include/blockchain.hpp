@@ -105,20 +105,20 @@ class Blockchain {
 
         void write();
 
-
+        void decentralized_mining(const int& miners = 5, const int& max_guesses = 30000);
 
         // BLOCK
         /**
          * @brief If there is a block to mine, mine it
          * 
          */
-        void mine_block(block mineable_block);
+        void mine_block(block mineable_block, bool limit_guesses = false, const int& max_guesses = 30000);
 
         /**
          * @brief Create a new block if there are any unconfirmed transactions
          * 
          */
-        void create_block();
+        void create_block(bool limit_guesses = false, const int& max_guesses = 30000);
 
         /**
          * @brief Create a first block in a blockchain
@@ -257,7 +257,7 @@ class Blockchain {
         std::unordered_map<std::string, transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
-        int difficulity_target = 2;
+        int difficulity_target = 4;
         int blockchain_height = 0;
         int max_block_tx = 100;
 

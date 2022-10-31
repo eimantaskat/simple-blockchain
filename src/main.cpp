@@ -34,43 +34,7 @@ void generate_transactions(Blockchain &bc, int n) {
 }
 
 int main() {
-    auto start = hrClock::now();
     Blockchain bc;
-
-    // generate_users(bc, 1000);
-    // generate_transactions(bc, 10000);
-    // bc.create_block();
-    // bc.mine_block();
-    // while (bc.get_unvalidated_transactions().size() > 0) {
-    //     bc.create_block();
-    //     bc.mine_block();
-    // }
-    // auto stop = hrClock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-    // std::cout << duration.count() * 1e-9;
-    // ----
-    // bc.create_user("u1");
-    // bc.create_user("u2");
-
-    // bc.create_block();
-    // bc.mine_block();
-
-    // auto u = bc.get_users();
-    // std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
-    // std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
-
-    // bc.create_transaction(u[0].public_key, u[1].public_key, 1000);
-
-    // bc.create_block();
-    // bc.mine_block();
-    
-    // std::cout << "u1 balance: " << bc.get_balance(u[0].public_key) << "\n";
-    // std::cout << "u2 balance: " << bc.get_balance(u[1].public_key) << "\n";
-
-    // auto t = bc.get_user_transactions(u[0].public_key);
-    // for (auto tx:t) {
-    //     std::cout << tx.id << " " << tx.from << " " << tx.to << " " << tx.out[0].amount << " " << tx.out[0].unspent << " " << tx.out[1].amount << " " << tx.out[1].unspent << "\n";
-    // }
 
     std::string input;
     while (true) {
@@ -83,6 +47,8 @@ int main() {
             bc.create_block();
             bc.write();
             std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
+        } else if (input == "startMining") {
+            bc.decentralized_mining();
         } else if (input == "mineBlock") {
             bc.create_block();
             bc.write();
@@ -108,6 +74,7 @@ int main() {
             std::cout << "Commands:\n"
                         << "\thelp\t\t\tShow this view\n"
                         << "\tgenerateData\t\tGenerate users and transactions\n"
+                        << "\tstartMining\t\tStart decentralized mining\n"
                         << "\tmineBlock\t\tMine one block\n"
                         << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
                         << "\tshowBlock\t\tGet information about block\n"
