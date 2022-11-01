@@ -59,13 +59,6 @@ class Blockchain {
             long time;
             std::vector<txo> in;
             std::vector<txo> out;
-
-            bool operator==(const transaction &t) const {
-                return id == t.id;
-            }
-            bool operator<(const transaction &t) const {
-                return id < t.id;
-            }
         };
 
         /**
@@ -97,48 +90,26 @@ class Blockchain {
 
         // METHODS
         /**
-         * @brief Write selected cached data to disk
+         * @brief Writes all cached data into the disk
          * 
-         * @param data_type Type of data to write to disk. Possible types: block, transactions, unvalidated_transactions, users, block_to_mine
          */
-        void write_to_disk(std::string data_type);
-
         void write();
 
+        /**
+         * @brief Simulate "decentralized" mining
+         * 
+         * @param miners Amount of miners to simualte. Defaults to 5
+         * @param max_guesses Amount of hash guesses each miner gets. Defaults to 30,000
+         */
         void decentralized_mining(const int& miners = 5, const int& max_guesses = 30000);
 
-        // BLOCK
-        /**
-         * @brief If there is a block to mine, mine it
-         * 
-         */
-        void mine_block(block mineable_block, bool limit_guesses = false, const int& max_guesses = 30000);
 
+        // BLOCK
         /**
          * @brief Create a new block if there are any unconfirmed transactions
          * 
          */
         void create_block(bool limit_guesses = false, const int& max_guesses = 30000);
-
-        /**
-         * @brief Create a first block in a blockchain
-         * 
-         */
-        void create_first_block();
-        
-        /**
-         * @brief Generate block's that needs to be mined buffer to write to file
-         * 
-         * @return Block's stringstream buffer
-         */
-        std::stringstream generate_block_to_mine_buffer();
-        
-        /**
-         * @brief 
-         * 
-         * @return std::stringstream 
-         */
-        std::stringstream generate_block_buffer();
 
         /**
          * @brief Get the last block from the longest chain
@@ -147,15 +118,20 @@ class Blockchain {
          */
         block get_best_block();
 
-        block read_block(const int& index);
+        /**
+         * @brief Get block by its height
+         * 
+         * @param height Block's height
+         * @return Block 
+         */
+        block get_block(const int& height);
 
         /**
-         * @brief Get the block to mine
+         * @brief Print block info to console
          * 
-         * @return Block that needs to be mined 
+         * @param height Block height
          */
-        block get_block_to_mine();
-        void print_block(const int& index);
+        void print_block(const int& height);
 
 
 
@@ -169,34 +145,29 @@ class Blockchain {
          */
         void create_transaction(const std::string& from, const std::string& to, const double& amount);
         
-        void read_transactions();
-        void read_unvalidated_transactions();
         /**
-         * @brief Get all transaction's
+         * @brief Get all unvalidated transaction's
          * 
-         * @param unvalidated If true, returns unvalidated transactions and validated otherwise
-         * @return Vector of all transactions
+         * @return Vector of unvalidated transactions
          */
         std::vector<transaction> get_unvalidated_transactions();
+
+        /**
+         * @brief Get all validated transaction's
+         * 
+         * @return Unordered map of validated transactions
+         */
         std::unordered_map<std::string, transaction> get_transactions();
 
         /**
-         * @brief Generate transactions's buffer to write to file
+         * @brief Print transaction info to console
          * 
-         * @return Transactions's stringstream buffer
+         * @param id Transacion id
          */
-        std::stringstream generate_transactions_buffer();
-        std::stringstream generate_unvalidated_transactions_buffer();
-
-        void erase_transactions(const std::vector<std::string>& transactions);
-        transaction complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it);
         void print_transaction(const std::string& id);
-        std::vector<std::string> select_random_transactions();
-
 
 
         // USER
-
         /**
          * @brief Create a new user and write its data to cache. In order to safe cached users to disk call write_to_disk("users")
          * 
@@ -205,29 +176,11 @@ class Blockchain {
         void create_user(const std::string& name);
 
         /**
-         * @brief Get all transactions user has received
+         * @brief Get all users
          * 
-         * @param public_key User's public key
-         * @param unspent If true, returns only unspent transactions
-         * @return Vector of all transactions that given user has received
+         * @return Vector of users
          */
-        std::vector<transaction> get_user_transactions(const std::string& public_key, bool unspent = false);
-
-        /**
-         * @brief Read users from disk
-         * 
-         * @return Vector of all users in a blockchain
-         */
-        void read_users();
-
         std::vector<user> get_users();
-
-        /**
-         * @brief Generate users's buffer to write to file
-         * 
-         * @return Users's stringstream buffer
-         */
-        std::stringstream generate_users_buffer();
 
         /**
          * @brief Get user's account balance
@@ -247,9 +200,7 @@ class Blockchain {
         std::string user_data_file = data_folder + "/users.dat";
         std::string unvalidated_transaction_file = data_folder + "/unvalidated_transactions.dat";
         std::string transaction_file = data_folder + "/transactions.dat";
-        std::string block_to_mine_file = data_folder + "/block_to_mine.dat";
 
-        block block_to_mine;
         block mined_block;
         
         std::vector<user> cached_users;
@@ -262,6 +213,12 @@ class Blockchain {
         int max_block_tx = 100;
 
         // METHODS
+        /**
+         * @brief Write selected cached data to disk
+         * 
+         * @param data_type Type of data to write to disk. Possible types: block, transactions, unvalidated_transactions, users, block_to_mine
+         */
+        void write_to_disk(std::string data_type);
 
         /**
          * @brief Creates blockchain data file of given type
@@ -290,8 +247,113 @@ class Blockchain {
          * @brief Method to check if file exists
          * 
          * @param name Name of file
-         * @return true if file exists
-         * @return false if file does not exist
+         * @return true if file exists false otherwise
          */
         bool file_exists(const std::string& name);
+
+        // BLOCK
+        /**
+         * @brief Mine given block
+         * 
+         * @param mineable_block Block to mine
+         * @param limit_guesses If true, limits amount of hash guesses. Defaults to false
+         * @param max_guesses The limit of guesses if amount of hash guesses is limited. Defaults to 30,000
+         */
+        void mine_block(block mineable_block, bool limit_guesses = false, const int& max_guesses = 30000);
+
+        /**
+         * @brief Create a first block in a blockchain and gives every user starting balance
+         * 
+         */
+        void create_first_block();
+
+        /**
+         * @brief Read block from file
+         * 
+         * @param height Block height
+         * @return Block 
+         */
+        block read_block(const int& height);
+
+        /**
+         * @brief Generate block buffer to write to file
+         * 
+         * @return Block's stringstream buffer
+         */
+        std::stringstream generate_block_buffer();
+
+
+        // TRANSACTION
+        /**
+         * @brief Read validated transactions from disk to cache
+         * 
+         */
+        void read_transactions();
+
+        /**
+         * @brief Read unvalidated transacctions from disk to cache
+         * 
+         */
+        void read_unvalidated_transactions();
+
+        /**
+         * @brief Generate transactions' buffer to write to file
+         * 
+         * @return Transactions' stringstream buffer
+         */
+        std::stringstream generate_transactions_buffer();
+
+        /**
+         * @brief Generate unvalidated transactions' buffer to write to file
+         * 
+         * @return Unavlidated transactions' stringstream buffer
+         */
+        std::stringstream generate_unvalidated_transactions_buffer();
+
+        /**
+         * @brief Erase given transactions from unvalidated transactions pool
+         * 
+         * @param transactions Vector of transaction ids
+         */
+        void erase_transactions(const std::vector<std::string>& transactions);
+
+        // TODO check if hash is correct
+        /**
+         * @brief Check if sender has enough money to send and if transaction hash is correct
+         * 
+         * @param current_tx_it Iterator pointing to a transaction to verify
+         * @return Transaction if it is valid, empty transaction otherwise
+         */
+        transaction verify_transaction(std::vector<Blockchain::transaction>::iterator current_tx_it);
+
+        /**
+         * @brief Select random transaction to put in a block
+         * 
+         * @return Vector of selected transactions' ids
+         */
+        std::vector<std::string> select_random_transactions();
+
+
+        // USER
+        /**
+         * @brief Get all transactions user has sent or received
+         * 
+         * @param public_key User's public key
+         * @return Vector of all transactions that given user has sent/received
+         */
+        std::vector<transaction> get_user_transactions(const std::string& public_key);
+
+        /**
+         * @brief Read users from disk
+         * 
+         * @return Vector of all users in a blockchain
+         */
+        void read_users();
+
+        /**
+         * @brief Generate users's buffer to write to file
+         * 
+         * @return Users's stringstream buffer
+         */
+        std::stringstream generate_users_buffer();
 };

@@ -5,14 +5,47 @@
 void Blockchain::create_transaction(const std::string& from, const std::string& to, const double& amount) {
     long current_time = get_epoch_time();
 
-    // TODO check if users exsist and have enough money to send
-    // TODO if transactions with same sender, receiver and amount are created in the same second they get same id
     std::string val_to_hash = from + to + std::to_string(amount) + std::to_string(current_time);
     std::string transaction_id = hash256.hash(val_to_hash);
 
     transaction new_transaction {transaction_id, from, to, amount, current_time};
     cached_unvalidated_transactions.push_back(new_transaction);
 }
+
+std::vector<Blockchain::transaction> Blockchain::get_unvalidated_transactions() {
+    return cached_unvalidated_transactions;
+}
+
+std::unordered_map<std::string, Blockchain::transaction> Blockchain::get_transactions() {
+    return cached_transactions;
+}
+
+void Blockchain::print_transaction(const std::string& id) {
+    auto tx_it = cached_transactions.find(id);
+
+    std::cout << "Id: " << tx_it->second.id << "\n"
+                << "From: " << tx_it->second.from << "\n"
+                << "To: " << tx_it->second.to << "\n"
+                << "Amount: " << tx_it->second.amount << "\n"
+                << "Time: " << tx_it->second.time << "\n\n"
+                << "Inputs:\n";
+
+    for (auto t:tx_it->second.in) {
+        std::cout << "\tto: " << t.to << "\n"
+                    << "\tamount: " << t.amount << "\n"
+                    << "\tunspent: " << t.unspent << "\n\n";
+    }
+
+    std::cout << "Outputs:\n";
+    for (auto t:tx_it->second.out) {
+        std::cout << "\tto: " << t.to << "\n"
+                    << "\tamount: " << t.amount << "\n"
+                    << "\tunspent: " << t.unspent << "\n\n";
+    }
+    return;
+}
+
+// PRIVATE METHODS
 
 void Blockchain::read_transactions() {
     std::stringstream buffer;
@@ -188,18 +221,11 @@ void Blockchain::read_unvalidated_transactions() {
     }
 }
 
-std::vector<Blockchain::transaction> Blockchain::get_unvalidated_transactions() {
-    return cached_unvalidated_transactions;
-}
-
-std::unordered_map<std::string, Blockchain::transaction> Blockchain::get_transactions() {
-    return cached_transactions;
-}
-
-std::stringstream Blockchain::generate_unvalidated_transactions_buffer() {
+std::stringstream Blockchain::generate_transactions_buffer() {
     std::stringstream buffer;
 
-    for (transaction t:cached_unvalidated_transactions) {
+    for (auto pair:cached_transactions) {
+        transaction t = pair.second;
         buffer << t.id << "~"
             << t.from << "~"
             << t.to << "~"
@@ -224,11 +250,10 @@ std::stringstream Blockchain::generate_unvalidated_transactions_buffer() {
     return buffer;
 }
 
-std::stringstream Blockchain::generate_transactions_buffer() {
+std::stringstream Blockchain::generate_unvalidated_transactions_buffer() {
     std::stringstream buffer;
 
-    for (auto pair:cached_transactions) {
-        transaction t = pair.second;
+    for (transaction t:cached_unvalidated_transactions) {
         buffer << t.id << "~"
             << t.from << "~"
             << t.to << "~"
@@ -263,7 +288,7 @@ void Blockchain::erase_transactions(const std::vector<std::string>& transactions
     }
 }
 
-Blockchain::transaction Blockchain::complete_transaction(std::string tx_id, std::vector<Blockchain::transaction>::iterator current_tx_it) {
+Blockchain::transaction Blockchain::verify_transaction(std::vector<Blockchain::transaction>::iterator current_tx_it) {
     // find sender and receiver
     auto sender = std::find_if(cached_users.begin(),
                                     cached_users.end(),
@@ -338,39 +363,7 @@ Blockchain::transaction Blockchain::complete_transaction(std::string tx_id, std:
     current_tx_it->out.push_back(out0);
     current_tx_it->out.push_back(out1);
 
-    // std::string current_tx_id;
-    // current_tx_id = current_tx_it->id;
-
-    // sender->utx_ids.push_back(current_tx_id);
-    // receiver->utx_ids.push_back(current_tx_id);
-
-    // cached_transactions.emplace(current_tx_id, *current_tx_it);
     return *current_tx_it;
-}
-
-void Blockchain::print_transaction(const std::string& id) {
-    auto tx_it = cached_transactions.find(id);
-
-    std::cout << "Id: " << tx_it->second.id << "\n"
-                << "From: " << tx_it->second.from << "\n"
-                << "To: " << tx_it->second.to << "\n"
-                << "Amount: " << tx_it->second.amount << "\n"
-                << "Time: " << tx_it->second.time << "\n\n"
-                << "Inputs:\n";
-
-    for (auto t:tx_it->second.in) {
-        std::cout << "\tto: " << t.to << "\n"
-                    << "\tamount: " << t.amount << "\n"
-                    << "\tunspent: " << t.unspent << "\n\n";
-    }
-
-    std::cout << "Outputs:\n";
-    for (auto t:tx_it->second.out) {
-        std::cout << "\tto: " << t.to << "\n"
-                    << "\tamount: " << t.amount << "\n"
-                    << "\tunspent: " << t.unspent << "\n\n";
-    }
-    return;
 }
 
 std::vector<std::string> Blockchain::select_random_transactions() {
@@ -401,8 +394,5 @@ std::vector<std::string> Blockchain::select_random_transactions() {
         --tx_amount;
     }
 
-    // for (auto t:rand_tx) {
-    //     std::cout << t << " ";
-    // }
     return rand_tx;
 }

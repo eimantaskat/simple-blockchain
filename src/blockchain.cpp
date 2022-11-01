@@ -23,10 +23,12 @@ Blockchain::Blockchain() {
     std::cout << "Loaded " << cached_unvalidated_transactions.size() << " unvalidated transactions\n";
 }
 
+// DESTRUCTOR
 Blockchain::~Blockchain() {
     write();
 }
 
+// PUBLIC METHODS
 void Blockchain::write() {
     write_to_disk("users");
     write_to_disk("unvalidated_transactions");
@@ -42,9 +44,7 @@ void Blockchain::decentralized_mining(const int& max_guesses, const int& miners)
     }
 }
 
-// PUBLIC METHODS
-
-// TODO make writing blocks private
+// PRIVATE METHODS
 void Blockchain::write_to_disk(std::string data_type) {
     const std::string file_type = "#blockchain-data:" + data_type;
 
@@ -58,30 +58,9 @@ void Blockchain::write_to_disk(std::string data_type) {
         filename = transaction_file;
     } else if (data_type == "users") {
         filename = user_data_file;
-    } else if (data_type == "block_to_mine") {
-        filename = block_to_mine_file;
     } else if (data_type == "block") {
         filename = blocks_folder + "/block" + std::to_string(mined_block.height) + ".dat";
-    } else if (data_type == "confirmed_transactions") {
-        filename = block_to_mine_file;
     }
-
-    // std::fstream file (filename);
-    // std::getline(file, header);
-    // std::cout << header << "\n";
-    // if (header.length()) {
-    //     bool correct_file_type = ( header == file_type );
-
-    //     if (!correct_file_type) {
-    //         throw std::runtime_error("Incorrect file type");
-    //     }
-    // } else {
-    //     file.close();
-    //     create_file(data_type, filename);
-    //     file.open(filename);
-    //     std::getline(file, header);
-    //     std::cout << header << "\n";
-    // }
 
     create_file(data_type, filename);
     std::fstream file (filename);
@@ -98,16 +77,11 @@ void Blockchain::write_to_disk(std::string data_type) {
     } else if (data_type == "users") {
         buffer = generate_users_buffer();
         file << buffer.rdbuf();
-    } else if (data_type == "block_to_mine") {
-        buffer = generate_block_to_mine_buffer();
-        file << buffer.rdbuf();
     } else if (data_type == "block") {
         buffer = generate_block_buffer();
         file << buffer.rdbuf();
     }
 }
-
-// PRIVATE METHODS
 
 void Blockchain::create_file(std::string data_type, std::string file_name) {
     std::ofstream file (file_name);

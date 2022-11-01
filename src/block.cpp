@@ -3,6 +3,64 @@
 
 // PUBLIC METHODS
 
+void Blockchain::create_block(bool limit_guesses, const int& max_guesses) {
+    if (blockchain_height == 0) {
+        create_first_block();
+        return;
+    }
+
+    block prev_block = get_best_block();
+
+    std::string prev_block_hash = prev_block.hash;
+    long time = get_epoch_time();
+
+    std::vector<std::string> tx = select_random_transactions();
+
+    std::string merkleroot = get_merkleroot(tx);
+
+    block new_block;
+    new_block.height = blockchain_height;
+    new_block.prev_block_hash = prev_block_hash;
+    new_block.time = time;
+    new_block.version = blockchain_version;
+    new_block.difficulity_target = difficulity_target;
+    new_block.tx = tx;
+
+    mine_block(new_block, limit_guesses, max_guesses);
+}
+
+Blockchain::block Blockchain::get_best_block() {
+    block best_block;
+    best_block = read_block(blockchain_height - 1);
+
+    return best_block;
+}
+
+Blockchain::block Blockchain::get_block(const int& height) {
+    return read_block(height);
+}
+
+void Blockchain::print_block(const int& index) {
+    block b = read_block(index);
+
+    std::cout << "Hash: " << b.hash << "\n"
+                << "Height: " << b.height << "\n"
+                << "Previous block hash: " << b.prev_block_hash << "\n"
+                << "Timestamp: " << b.time << "\n"
+                << "Version: " << b.version << "\n"
+                << "Merkleroot: " << b.merkleroot << "\n"
+                << "Nonce: " << b.nonce << "\n"
+                << "Difficulity: " << b.difficulity_target << "\n"
+                << "Transactions: \n";
+    for (auto tx:b.tx) {
+        std::cout << "\t" << tx << "\n";
+    }
+
+    return;
+}
+
+// PRIVATE METHODS
+
 void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int& max_guesses) {
     std::vector<transaction> validated_tx;
     validated_tx.reserve(max_block_tx);
@@ -20,7 +78,7 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
             std::string val_to_hash = current_tx_it->from + current_tx_it->to + std::to_string(current_tx_it->amount) + std::to_string(current_tx_it->time);
             std::string hash = hash256.hash(val_to_hash);
 
-            transaction validated = complete_transaction(*it, current_tx_it);
+            transaction validated = verify_transaction(current_tx_it);
             
             if (validated.id.size() != 0) {
                 validated_tx.push_back(validated);
@@ -38,6 +96,7 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
         tmp.push_back(tx_it->id);
     }
     std::string merkleroot = get_merkleroot(tmp);
+    mineable_block.tx = tmp;
 
     int diff_target = mineable_block.difficulity_target;
     std::string difficulity_target = std::to_string(diff_target);
@@ -66,7 +125,7 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
         }
     }
 
-    std::cout << "Block mined! Hash: " << hash << "\n";
+    std::cout << "Block " << blockchain_height << " containing " << validated_tx.size() << " transactions mined! Hash: " << hash << "\n";
     mineable_block.merkleroot = merkleroot;
     mineable_block.hash = hash;
     mined_block = mineable_block;
@@ -105,33 +164,6 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
     blockchain_height++;
 }
 
-void Blockchain::create_block(bool limit_guesses, const int& max_guesses) {
-    if (blockchain_height == 0) {
-        create_first_block();
-        return;
-    }
-
-    // ---
-    block prev_block = get_best_block();
-
-    std::string prev_block_hash = prev_block.hash;
-    long time = get_epoch_time();
-
-    std::vector<std::string> tx = select_random_transactions();
-
-    std::string merkleroot = get_merkleroot(tx);
-
-    block new_block;
-    new_block.height = blockchain_height;
-    new_block.prev_block_hash = prev_block_hash;
-    new_block.time = time;
-    new_block.version = blockchain_version;
-    new_block.difficulity_target = difficulity_target;
-    new_block.tx = tx;
-
-    mine_block(new_block, limit_guesses, max_guesses);
-}
-
 void Blockchain::create_first_block() {
     if (blockchain_height != 0) {
         std::cout << "First block has already been created!\n";
@@ -143,7 +175,7 @@ void Blockchain::create_first_block() {
 
     long unsigned int seed = get_epoch_time();
     mt.seed(seed);
-    std::uniform_real_distribution<double> amount_dist(100, 10000);
+    std::uniform_real_distribution<double> amount_dist(1000, 10000);
 
     for (user u:users) {
         std::string from = "Coinbase";
@@ -196,49 +228,6 @@ void Blockchain::create_first_block() {
     new_block.tx = tx_ids;
 
     mine_block(new_block);
-}
-
-std::stringstream Blockchain::generate_block_to_mine_buffer() {
-    std::stringstream buffer;
-
-    buffer << block_to_mine.height << "~"
-            << block_to_mine.prev_block_hash << "~"
-            << block_to_mine.time << "~"
-            << block_to_mine.version << "~"
-            << block_to_mine.merkleroot << "~"
-            << block_to_mine.difficulity_target << "~";
-    for (std::string t:block_to_mine.tx) {
-        buffer << t << "~";
-    }
-
-    block_to_mine = block();
-    return buffer;
-}
-
-std::stringstream Blockchain::generate_block_buffer() {
-    std::stringstream buffer;
-
-        buffer << mined_block.hash << "~"
-                << mined_block.height << "~"
-                << mined_block.prev_block_hash << "~"
-                << mined_block.time << "~"
-                << mined_block.version << "~"
-                << mined_block.merkleroot << "~"
-                << mined_block.nonce << "~"
-                << mined_block.difficulity_target << "~";
-        for (std::string t:mined_block.tx) {
-            buffer << t << "~";
-        }
-
-    mined_block = block();
-    return buffer;
-}
-
-Blockchain::block Blockchain::get_best_block() {
-    block best_block;
-    best_block = read_block(blockchain_height - 1);
-
-    return best_block;
 }
 
 Blockchain::block Blockchain::read_block(const int& index) {
@@ -301,73 +290,21 @@ Blockchain::block Blockchain::read_block(const int& index) {
     return b;
 }
 
-Blockchain::block Blockchain::get_block_to_mine() {
-    const std::string file_type = "#blockchain-data:block_to_mine";
-
+std::stringstream Blockchain::generate_block_buffer() {
     std::stringstream buffer;
-    std::string header;
 
-    std::ifstream file (block_to_mine_file);
-    std::getline(file, header);
-
-    if (header.length()) {
-        bool correct_file_type = ( header == file_type );
-
-        if (!correct_file_type) {
-            throw std::runtime_error("Incorrect file type");
+        buffer << mined_block.hash << "~"
+                << mined_block.height << "~"
+                << mined_block.prev_block_hash << "~"
+                << mined_block.time << "~"
+                << mined_block.version << "~"
+                << mined_block.merkleroot << "~"
+                << mined_block.nonce << "~"
+                << mined_block.difficulity_target << "~";
+        for (std::string t:mined_block.tx) {
+            buffer << t << "~";
         }
-    } else {
-        throw std::runtime_error("File not found");
-    }
 
-    buffer << file.rdbuf();
-    file.close();
-
-    std::string line;
-    block mineable_block;
-
-    getline(buffer, line, '~');
-    mineable_block.height = std::stoi(line);
-
-    getline(buffer, line, '~');
-    mineable_block.prev_block_hash = line;
-
-    getline(buffer, line, '~');
-    mineable_block.time = std::stol(line);
-
-    getline(buffer, line, '~');
-    mineable_block.version = line;
-
-    getline(buffer, line, '~');
-    mineable_block.merkleroot = line;
-
-    getline(buffer, line, '~');
-    mineable_block.difficulity_target = std::stoi(line);
-
-    while (getline(buffer, line, '~')) {
-        mineable_block.tx.push_back(line);
-    }
-
-    return mineable_block;
+    mined_block = block();
+    return buffer;
 }
-
-void Blockchain::print_block(const int& index) {
-    block b = read_block(index);
-
-    std::cout << "Hash: " << b.hash << "\n"
-                << "Height: " << b.height << "\n"
-                << "Previous block hash: " << b.prev_block_hash << "\n"
-                << "Timestamp: " << b.time << "\n"
-                << "Version: " << b.version << "\n"
-                << "Merkleroot: " << b.merkleroot << "\n"
-                << "Nonce: " << b.nonce << "\n"
-                << "Difficulity: " << b.difficulity_target << "\n"
-                << "Transactions: \n";
-    for (auto tx:b.tx) {
-        std::cout << "\t" << tx << "\n";
-    }
-
-    return;
-}
-
-// PRIVATE METHODS

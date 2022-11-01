@@ -4,7 +4,6 @@
 
 void Blockchain::create_user(const std::string& name) {
     long current_time = get_epoch_time();
-    // FIXME if users with same username are created in the same second they get same public keys
     std::string val_to_hash = name + std::to_string(current_time);
     std::string public_key = hash256.hash(val_to_hash);
 
@@ -14,7 +13,30 @@ void Blockchain::create_user(const std::string& name) {
     get_users();
 }
 
-std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std::string& public_key, bool unspent) {
+std::vector<Blockchain::user> Blockchain::get_users() {
+    return cached_users;
+}
+
+double Blockchain::get_balance(const std::string& public_key) {
+    std::vector<transaction> tx;
+    tx = get_user_transactions(public_key);
+
+    double balance = 0;
+
+    for (transaction t:tx) {
+        for (txo t_out:t.out) {
+            if (t_out.to == public_key && t_out.unspent) {
+                balance += t_out.amount;
+            }
+        }
+    }
+
+    return balance;
+}
+
+// PRIVATE METHODS
+
+std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std::string& public_key) {
     std::vector<transaction> user_transactions;
     
     auto tx = get_transactions();
@@ -28,9 +50,6 @@ std::vector<Blockchain::transaction> Blockchain::get_user_transactions(const std
     return user_transactions;
 }
 
-std::vector<Blockchain::user> Blockchain::get_users() {
-    return cached_users;
-}
 
 void Blockchain::read_users() {
     const std::string file_type = "#blockchain-data:users";
@@ -93,22 +112,3 @@ std::stringstream Blockchain::generate_users_buffer() {
 
     return buffer;
 }
-
-double Blockchain::get_balance(const std::string& public_key) {
-    std::vector<transaction> tx;
-    tx = get_user_transactions(public_key);
-
-    double balance = 0;
-
-    for (transaction t:tx) {
-        for (txo t_out:t.out) {
-            if (t_out.to == public_key && t_out.unspent) {
-                balance += t_out.amount;
-            }
-        }
-    }
-
-    return balance;
-}
-
-// PRIVATE METHODS
