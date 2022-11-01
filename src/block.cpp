@@ -37,6 +37,10 @@ Blockchain::block Blockchain::get_best_block() {
 }
 
 Blockchain::block Blockchain::get_block(const int& height) {
+    if (height > blockchain_height) {
+        std::cout << "Block " << height << " does not exist!\n";
+        return;
+    }
     return read_block(height);
 }
 
@@ -61,7 +65,7 @@ void Blockchain::print_block(const int& height) {
 
 void Blockchain::block_html(const int& height) {
     if (height > blockchain_height) {
-        std::cout << "Block " << height << " does not exsist!\n";
+        std::cout << "Block " << height << " does not exist!\n";
         return;
     }
     block b = read_block(height);

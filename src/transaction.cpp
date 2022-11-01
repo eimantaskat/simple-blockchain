@@ -22,6 +22,10 @@ std::unordered_map<std::string, Blockchain::transaction> Blockchain::get_transac
 
 void Blockchain::print_transaction(const std::string& id) {
     auto tx_it = cached_transactions.find(id);
+    if (tx_it == cached_transactions.end()) {
+        std::cout << "Transaction " << id << " does not exist!\n";
+        return;
+    }
 
     std::cout << "Id: " << tx_it->second.id << "\n"
                 << "From: " << tx_it->second.from << "\n"
@@ -49,6 +53,11 @@ void Blockchain::print_transaction(const std::string& id) {
 
 void Blockchain::transaction_html(const std::string& id) {
     auto tx_it = cached_transactions.find(id);
+    if (tx_it == cached_transactions.end()) {
+        std::cout << "Transaction " << id << " does not exist!\n";
+        return;
+    }
+
     generate_transaction_html(tx_it->second);
 }
 

@@ -13,7 +13,7 @@ BOOL WINAPI HandlerRoutine(_In_ DWORD dwCtrlType) {
     std::cout.setstate(std::ios_base::failbit);
     switch (dwCtrlType) {
         case CTRL_C_EVENT:
-            printf("\r\e[K\nCaught ctrl + c\n");
+            printf("\r\e[K");
             stopped = true;
             return TRUE;
         default:
@@ -91,36 +91,34 @@ int main() {
             bc.block_html(height);
         } else if (input == "outputTransaction") {
             std::string hash;
-            std::cout << "Transaction hash: ";
             std::cin >> hash;
             bc.transaction_html(hash);
         } else if (input == "showBlock") {
             int id;
-            std::cout << "Block id: ";
             std::cin >> id;
             bc.print_block(id);
         } else if (input == "showTransaction") {
             std::string hash;
-            std::cout << "Transaction hash: ";
             std::cin >> hash;
             bc.print_transaction(hash);
         } else if (input == "quit") {
             break;
         } else if (input == "help") {
             std::cout << "Commands:\n"
-                        << "\thelp\t\t\tShow this view\n"
-                        << "\tgenerateData\t\tGenerate users and transactions\n"
-                        << "\tstartMining\t\tStart decentralized mining\n"
-                        << "\tmineBlock\t\tMine one block\n"
-                        << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
+                        << "\thelp\t\t\t\t\tShow this view\n"
+                        << "\tgenerateData\t\t\t\tGenerate users and transactions\n"
+                        << "\tstartMining\t\t\t\tStart decentralized mining\n"
+                        << "\tmineBlock\t\t\t\tMine one block\n"
+                        << "\tmineAllBlocks\t\t\t\tMine blocks until there are no transactions left\n"
                         << "\toutputBlock <block height>\t\tOutput block info to HTML file\n"
-                        << "\toutputTransaction\t\tOutput transaction info to HTML file\n"
-                        << "\tshowBlock\t\tGet information about block\n"
-                        << "\tshowTransaction\t\tGet information about transaction\n"
-                        << "\tquit\t\t\tClose blockchain\n";
+                        << "\toutputTransaction <transaction hash>\tOutput transaction info to HTML file\n"
+                        << "\tshowBlock <block height>\t\tGet information about block\n"
+                        << "\tshowTransaction <transaction hash>\tGet information about transaction\n"
+                        << "\tquit\t\t\t\t\tClose blockchain\n";
         } else if (input.size() > 0) {
             std::cout << "Command \"" << input << "\" not found\n"
                         << "Type \"help\" to list all available commands\n";
         }
+        input = "";
     }
 }
