@@ -31,14 +31,16 @@ void Blockchain::print_transaction(const std::string& id) {
                 << "Inputs:\n";
 
     for (auto t:tx_it->second.in) {
-        std::cout << "\tto: " << t.to << "\n"
+        std::cout << "\ttransaction id: " << t.transaction_id << "\n"
+                    << "\tto: " << t.to << "\n"
                     << "\tamount: " << t.amount << "\n"
                     << "\tunspent: " << t.unspent << "\n\n";
     }
 
     std::cout << "Outputs:\n";
     for (auto t:tx_it->second.out) {
-        std::cout << "\tto: " << t.to << "\n"
+        std::cout << "\ttransaction id: " << t.transaction_id << "\n"
+                    << "\tto: " << t.to << "\n"
                     << "\tamount: " << t.amount << "\n"
                     << "\tunspent: " << t.unspent << "\n\n";
     }
@@ -279,6 +281,7 @@ std::stringstream Blockchain::generate_unvalidated_transactions_buffer() {
 }
 
 void Blockchain::erase_transactions(const std::vector<std::string>& transactions) {
+    int size = cached_unvalidated_transactions.size();
     for (auto tx_it = transactions.begin(); tx_it != transactions.end(); ++tx_it) {
         cached_unvalidated_transactions.erase(std::remove_if(
             cached_unvalidated_transactions.begin(), cached_unvalidated_transactions.end(),
@@ -288,12 +291,12 @@ void Blockchain::erase_transactions(const std::vector<std::string>& transactions
     }
 }
 
-Blockchain::transaction Blockchain::verify_transaction(std::vector<Blockchain::transaction>::iterator current_tx_it) {
-    // find sender and receiver
+Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
+    // find sender
     auto sender = std::find_if(cached_users.begin(),
                                     cached_users.end(),
                                     [&](const user& u) {
-                                        return u.public_key == current_tx_it->from;
+                                        return u.public_key == current_tx.from;
                                     });
 
     // find all transactions where sender participated
@@ -316,14 +319,14 @@ Blockchain::transaction Blockchain::verify_transaction(std::vector<Blockchain::t
     std::vector<std::vector<Blockchain::txo>::iterator> spent_transactions;
     for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
         // if he has enough money break the loop
-        if (spent_tx_amount >= current_tx_it->amount) {
+        if (spent_tx_amount >= current_tx.amount) {
             break;
         }
 
         // loop through tx outputs
         for (auto txo_it = it->out.begin(); txo_it != it->out.end(); ++txo_it) {
             // if sender received money and that txo is unspent
-            if ((txo_it->to == current_tx_it->from) && txo_it->unspent) {
+            if ((txo_it->to == current_tx.from) && txo_it->unspent) {
 
                 // find unspent transaction in confirmed tx pool
                 auto input = cached_transactions.find(txo_it->transaction_id);
@@ -331,21 +334,21 @@ Blockchain::transaction Blockchain::verify_transaction(std::vector<Blockchain::t
                 // loop through its outputs
                 for (auto input_txo_it = input->second.out.begin(); input_txo_it != input->second.out.end(); ++input_txo_it) {
                     // mark output that sender has received as spent
-                    if (input_txo_it->to == current_tx_it->from) {
+                    if (input_txo_it->to == current_tx.from) {
                         spent_transactions.push_back(input_txo_it);
                         input_txo_it->unspent = false;
                     }
                 }
                 
                 // add spent txo to new transaction's input
-                current_tx_it->in.push_back(*txo_it);
+                current_tx.in.push_back(*txo_it);
                 spent_tx_amount += txo_it->amount;
             }
         }
     }
 
     // if sender doesn't have enough money to complete this transaction
-    if (spent_tx_amount < current_tx_it->amount) {
+    if (spent_tx_amount < current_tx.amount) {
         // mark spent txo for this transaction as unspent
         for (auto it = spent_transactions.begin(); it != spent_transactions.end(); ++it) {
             (*it)->unspent = true;
@@ -354,16 +357,16 @@ Blockchain::transaction Blockchain::verify_transaction(std::vector<Blockchain::t
         return transaction{};
     }
 
-    double change = spent_tx_amount - current_tx_it->amount;
+    double change = spent_tx_amount - current_tx.amount;
     
     // create utxos
-    txo out0 {current_tx_it->id, current_tx_it->from, change, true};
-    txo out1 {current_tx_it->id, current_tx_it->to, current_tx_it->amount, true};
+    txo out0 {current_tx.id, current_tx.from, change, true};
+    txo out1 {current_tx.id, current_tx.to, current_tx.amount, true};
 
-    current_tx_it->out.push_back(out0);
-    current_tx_it->out.push_back(out1);
+    current_tx.out.push_back(out0);
+    current_tx.out.push_back(out1);
 
-    return *current_tx_it;
+    return current_tx;
 }
 
 std::vector<std::string> Blockchain::select_random_transactions() {

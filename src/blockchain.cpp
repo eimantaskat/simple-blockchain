@@ -25,7 +25,9 @@ Blockchain::Blockchain() {
 
 // DESTRUCTOR
 Blockchain::~Blockchain() {
+    printf("Stopping blockchain...\n");
     write();
+    printf("Blockchain stopped!\n");
 }
 
 // PUBLIC METHODS
@@ -41,6 +43,7 @@ void Blockchain::decentralized_mining(const int& max_guesses, const int& miners)
     for (int miner_no = 0; miner_no < 5; ++miner_no) {
         std::cout << "Miner: " << miner_no << "\n";
         create_block(true);
+        write();
     }
 }
 

@@ -78,11 +78,17 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
             std::string val_to_hash = current_tx_it->from + current_tx_it->to + std::to_string(current_tx_it->amount) + std::to_string(current_tx_it->time);
             std::string hash = hash256.hash(val_to_hash);
 
-            transaction validated = verify_transaction(current_tx_it);
+            transaction validated = verify_transaction(*current_tx_it);
             
             if (validated.id.size() != 0) {
                 validated_tx.push_back(validated);
             }
+        }
+    } else {
+        for (auto it = transactions.begin(); it != transactions.end(); ++it) {
+            auto tx_it = cached_transactions.find(*it);
+            transaction tx = tx_it->second;
+            validated_tx.push_back(tx);
         }
     }
 
@@ -132,29 +138,30 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
 
     if (mined_block.height != 0) {
         erase_transactions(transactions);
-    }
+    
 
-    for (auto tx_it = validated_tx.begin(); tx_it != validated_tx.end(); ++tx_it) {
-        auto sender = std::find_if(cached_users.begin(),
-                                    cached_users.end(),
-                                    [&](const user& u) {
-                                        return u.public_key == tx_it->from;
-                                    });
-
-        auto receiver = std::find_if(cached_users.begin(),
+        for (auto tx_it = validated_tx.begin(); tx_it != validated_tx.end(); ++tx_it) {
+            auto sender = std::find_if(cached_users.begin(),
                                         cached_users.end(),
                                         [&](const user& u) {
-                                            return u.public_key == tx_it->to;
+                                            return u.public_key == tx_it->from;
                                         });
 
-        std::string current_tx_id;
-        current_tx_id = tx_it->id;
+            auto receiver = std::find_if(cached_users.begin(),
+                                            cached_users.end(),
+                                            [&](const user& u) {
+                                                return u.public_key == tx_it->to;
+                                            });
 
-        sender->utx_ids.push_back(current_tx_id);
-        receiver->utx_ids.push_back(current_tx_id);
+            std::string current_tx_id;
+            current_tx_id = tx_it->id;
 
-        cached_transactions.emplace(current_tx_id, *tx_it);
-        cached_transactions.emplace(tx_it->id, *tx_it);
+            sender->utx_ids.push_back(current_tx_id);
+            receiver->utx_ids.push_back(current_tx_id);
+
+            cached_transactions.emplace(current_tx_id, *tx_it);
+            cached_transactions.emplace(tx_it->id, *tx_it);
+        }
     }
 
     write_to_disk("block");

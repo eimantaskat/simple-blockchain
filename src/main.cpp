@@ -4,6 +4,23 @@
 
 #include "../include/blockchain.hpp"
 
+#include <windows.h>
+#include <stdio.h>
+
+volatile bool stopped = false;
+
+BOOL WINAPI HandlerRoutine(_In_ DWORD dwCtrlType) {
+    std::cout.setstate(std::ios_base::failbit);
+    switch (dwCtrlType) {
+        case CTRL_C_EVENT:
+            printf("\r\e[K\nCaught ctrl + c\n");
+            stopped = true;
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
 void generate_users(Blockchain &bc, int n) {
     for (int i = 0; i < n; i++) {
         std::string username = "user" + std::to_string(i);
@@ -34,11 +51,20 @@ void generate_transactions(Blockchain &bc, int n) {
 }
 
 int main() {
+    BOOL ctrl_handler_set = SetConsoleCtrlHandler(HandlerRoutine, TRUE);
+    if (!ctrl_handler_set) {
+        std::cout << "ERROR: Could not set control handler";
+        return 1;
+    }
+
     Blockchain bc;
-    // bc.decentralized_mining();
 
     std::string input;
     while (true) {
+        if (stopped) {
+            break;
+        }
+
         std::cout << "blockchain> ";
         std::cin >> input;
 

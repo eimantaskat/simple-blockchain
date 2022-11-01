@@ -208,7 +208,7 @@ class Blockchain {
         std::unordered_map<std::string, transaction> cached_transactions;
 
         std::string blockchain_version = "v0.1";
-        int difficulity_target = 4;
+        int difficulity_target = 2;
         int blockchain_height = 0;
         int max_block_tx = 100;
 
@@ -324,7 +324,7 @@ class Blockchain {
          * @param current_tx_it Iterator pointing to a transaction to verify
          * @return Transaction if it is valid, empty transaction otherwise
          */
-        transaction verify_transaction(std::vector<Blockchain::transaction>::iterator current_tx_it);
+        transaction verify_transaction(transaction current_tx);
 
         /**
          * @brief Select random transaction to put in a block
