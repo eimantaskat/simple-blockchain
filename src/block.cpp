@@ -37,15 +37,15 @@ Blockchain::block Blockchain::get_best_block() {
 }
 
 Blockchain::block Blockchain::get_block(const int& height) {
-    if (height > blockchain_height) {
-        std::cout << "Block " << height << " does not exist!\n";
-        return;
-    }
     return read_block(height);
 }
 
 void Blockchain::print_block(const int& height) {
     block b = read_block(height);
+    if (height > blockchain_height) {
+        std::cout << "Block " << height << " does not exist!\n";
+        return;
+    }
 
     std::cout << "Hash: " << b.hash << "\n"
                 << "Height: " << b.height << "\n"
@@ -89,8 +89,6 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
                                                     [&](const transaction& t) {
                                                         return t.id == *it;
                                                     });
-            std::string val_to_hash = current_tx_it->from + current_tx_it->to + std::to_string(current_tx_it->amount) + std::to_string(current_tx_it->time);
-            std::string hash = hash256.hash(val_to_hash);
 
             transaction validated = verify_transaction(*current_tx_it);
             
@@ -196,12 +194,12 @@ void Blockchain::create_first_block() {
 
     long unsigned int seed = get_epoch_time();
     mt.seed(seed);
-    std::uniform_real_distribution<double> amount_dist(1000, 10000);
+    std::uniform_int_distribution<int> amount_dist(1000, 10000);
 
     for (user u:users) {
         std::string from = "Coinbase";
         std::string to = u.public_key;
-        double amount = amount_dist(mt);
+        int amount = amount_dist(mt);
         long current_time = get_epoch_time();
 
         std::string val_to_hash = from + to + std::to_string(amount) + std::to_string(current_time);

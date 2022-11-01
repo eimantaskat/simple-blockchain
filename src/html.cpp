@@ -13,7 +13,7 @@ void Blockchain::generate_block_html(block b) {
         transactions.push_back(tx);
     }
 
-    double sending_value = 0;
+    int sending_value = 0;
     int inputs_amount = 0;
     int outputs_amount = 0;
     for (auto tx_it = transactions.begin(); tx_it != transactions.end(); ++tx_it) {
@@ -27,7 +27,7 @@ void Blockchain::generate_block_html(block b) {
     float block_capacity = capacity_percentage;
     std::string block_distance = time_distance_to_str(time_distance);
     std::string block_mined_on = epoch_to_date(b.time);
-    double block_sending_value = sending_value;
+    int block_sending_value = sending_value;
     int block_inputs_amount = inputs_amount;
     int block_outputs_amount = outputs_amount;
     std::string block_version = b.version;
@@ -78,7 +78,7 @@ void Blockchain::generate_block_html(block b) {
                 std::string tx_id = tx_it->id;
                 std::string tx_from = tx_it->from;
                 std::string tx_to = tx_it->to;
-                double tx_amount = tx_it->amount;
+                int tx_amount = tx_it->amount;
                 html << "<div class=\"transaction\"><h4>"
                         << tx_id
                         << "</h4><h5>"
@@ -116,17 +116,17 @@ void Blockchain::generate_transaction_html(transaction tx) {
     auto tx_inputs = tx.in;
     auto tx_outputs = tx.out;
 
-    double tx_in_amount = 0;
+    int tx_in_amount = 0;
     for (auto txo_it = tx_inputs.begin(); txo_it != tx_inputs.end(); ++txo_it) {
         tx_in_amount += txo_it->amount;
     }
 
-    double tx_out_amount = 0;
+    int tx_out_amount = 0;
     for (auto txo_it = tx_outputs.begin(); txo_it != tx_outputs.end(); ++txo_it) {
         tx_out_amount += txo_it->amount;
     }
 
-    double tx_amount_sent = tx.amount;
+    int tx_amount_sent = tx.amount;
 
     int tx_block = -1;
     for (int i = 0; i < blockchain_height; ++i) {
@@ -165,7 +165,7 @@ void Blockchain::generate_transaction_html(transaction tx) {
 
             for (auto txo_it = tx_inputs.begin(); txo_it != tx_inputs.end(); ++txo_it) {
                 std::string txo_to = txo_it->to;
-                double txo_amount = txo_it->amount;
+                int txo_amount = txo_it->amount;
 
                 std::string txo_details;
                 if (txo_it->unspent) {
@@ -187,7 +187,7 @@ void Blockchain::generate_transaction_html(transaction tx) {
 
             for (auto txo_it = tx_outputs.begin(); txo_it != tx_outputs.end(); ++txo_it) {
                 std::string txo_to = txo_it->to;
-                double txo_amount = txo_it->amount;
+                int txo_amount = txo_it->amount;
                 
                 std::string txo_details;
                 if (txo_it->unspent) {

@@ -17,11 +17,11 @@ std::vector<Blockchain::user> Blockchain::get_users() {
     return cached_users;
 }
 
-double Blockchain::get_balance(const std::string& public_key) {
+int Blockchain::get_balance(const std::string& public_key) {
     std::vector<transaction> tx;
     tx = get_user_transactions(public_key);
 
-    double balance = 0;
+    int balance = 0;
 
     for (transaction t:tx) {
         for (txo t_out:t.out) {

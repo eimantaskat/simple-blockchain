@@ -2,9 +2,10 @@
 
 // PUBLIC METHODS
 
-void Blockchain::create_transaction(const std::string& from, const std::string& to, const double& amount) {
+void Blockchain::create_transaction(const std::string& from, const std::string& to, const int& amount) {
     long current_time = get_epoch_time();
 
+    
     std::string val_to_hash = from + to + std::to_string(amount) + std::to_string(current_time);
     std::string transaction_id = hash256.hash(val_to_hash);
 
@@ -104,7 +105,7 @@ void Blockchain::read_transactions() {
         getline(buffer, line, '~');
         t.amount = std::stod(line);
 
-        getline(buffer, line, '~');
+       getline(buffer, line, '~');
         t.time = std::stol(line);
 
 
@@ -306,6 +307,13 @@ void Blockchain::erase_transactions(const std::vector<std::string>& transactions
 }
 
 Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
+    // check if transaction has not been changed
+    std::string val_to_hash = current_tx.from + current_tx.to + std::to_string(current_tx.amount) + std::to_string(current_tx.time);
+    std::string hash = hash256.hash(val_to_hash);
+
+    if (current_tx.id != hash) {
+        return transaction{};
+    }
     // find sender
     auto sender = std::find_if(cached_users.begin(),
                                     cached_users.end(),
@@ -327,7 +335,7 @@ Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
     }
     
     // loop through senders transactions
-    double spent_tx_amount = 0;
+    int spent_tx_amount = 0;
     std::vector<std::vector<Blockchain::txo>::iterator> spent_transactions;
     for (auto it = senders_tx.begin(); it != senders_tx.end(); ++it) {
         // if he has enough money break the loop
@@ -370,7 +378,7 @@ Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
         return transaction{};
     }
 
-    double change = spent_tx_amount - current_tx.amount;
+    int change = spent_tx_amount - current_tx.amount;
     
     // create utxos
     txo out0 {current_tx.id, current_tx.from, change, true};

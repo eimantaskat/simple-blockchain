@@ -43,7 +43,7 @@ class Blockchain {
         struct txo {
             std::string transaction_id;
             std::string to;
-            double amount;
+            int amount;
             bool unspent = true;
         };
 
@@ -55,7 +55,7 @@ class Blockchain {
             std::string id;
             std::string from;
             std::string to;
-            double amount;
+            int amount;
             long time;
             std::vector<txo> in;
             std::vector<txo> out;
@@ -140,6 +140,8 @@ class Blockchain {
          */
         void block_html(const int& height);
 
+        inline int get_blockchain_height() { return blockchain_height; }
+
         // TRANSACTION
         /**
          * @brief Create a new transaction and write its data to cache. In order to safe cached transactions to disk call write_to_disk("transactions")
@@ -148,7 +150,7 @@ class Blockchain {
          * @param to Receivers private key
          * @param amount Sending amount
          */
-        void create_transaction(const std::string& from, const std::string& to, const double& amount);
+        void create_transaction(const std::string& from, const std::string& to, const int& amount);
         
         /**
          * @brief Get all unvalidated transaction's
@@ -200,7 +202,7 @@ class Blockchain {
          * @param public_key User's public key
          * @return User's balance
          */
-        double get_balance(const std::string& public_key);
+        int get_balance(const std::string& public_key);
 
     private:
         // VARIABLES

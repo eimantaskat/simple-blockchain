@@ -36,7 +36,7 @@ void generate_transactions(Blockchain &bc, int n) {
     long unsigned int seed = static_cast<long unsigned int>(hrClock::now().time_since_epoch().count());
     mt.seed(seed);
     std::uniform_int_distribution<int> users_dist(0, users.size()-1);
-    std::uniform_real_distribution<double> value_dist(10, 1000);
+    std::uniform_int_distribution<int> value_dist(10, 1000);
     
     for (int i = 0; i < n; i++) {
         int sender_index = users_dist(mt);
@@ -44,7 +44,7 @@ void generate_transactions(Blockchain &bc, int n) {
 
         std::string sender = users[sender_index].public_key;
         std::string receiver = users[receiver_index].public_key;
-        double amount = value_dist(mt);
+        int amount = value_dist(mt);
 
         bc.create_transaction(sender, receiver, amount);
     }
@@ -71,16 +71,21 @@ int main() {
         if (input == "generateData") {
             generate_users(bc, 1000);
             generate_transactions(bc, 10000);
-            bc.create_block();
-            bc.write();
-            std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
+            if (bc.get_blockchain_height() == 0) {
+                bc.create_block();
+                bc.write();
+                std::cout << "Generated 1000 users, 10000 transactions and created block with initial user balance\n";
+            } else {
+                bc.write();
+                std::cout << "Generated 1000 users and 10000 transactions\n";
+            }
         } else if (input == "startMining") {
             bc.decentralized_mining();
         } else if (input == "mineBlock") {
             bc.create_block();
             bc.write();
         } else if (input == "mineAllBlocks") {
-            while (bc.get_unvalidated_transactions().size() > 0) {
+            while (bc.get_unvalidated_transactions().size() > 0 && !stopped) {
                 bc.create_block();
             }
             bc.write();
