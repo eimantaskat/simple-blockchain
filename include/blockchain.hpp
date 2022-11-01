@@ -171,6 +171,13 @@ class Blockchain {
          */
         void print_transaction(const std::string& id);
 
+        /**
+         * @brief Generate HTML file containing transaction info
+         * 
+         * @param id Transaction id
+         */
+        void transaction_html(const std::string& id);
+
 
         // USER
         /**
@@ -206,6 +213,7 @@ class Blockchain {
         std::string unvalidated_transaction_file = data_folder + "/unvalidated_transactions.dat";
         std::string transaction_file = data_folder + "/transactions.dat";
         std::string html_block_file = "./block.html";
+        std::string html_transaction_file = "./transaction.html";
 
         block mined_block;
         
@@ -256,6 +264,22 @@ class Blockchain {
          * @return true if file exists false otherwise
          */
         bool file_exists(const std::string& name);
+
+        /**
+         * @brief Convert epocth time to date string
+         * 
+         * @param time Epoch time
+         * @return Date string
+         */
+        std::string epoch_to_date(long time);
+
+        /**
+         * @brief Convert seconds to days/hours/minutes/seconds
+         * 
+         * @param distance Amount o seconds
+         * @return Converted string
+         */
+        std::string time_distance_to_str(long distance);
 
         // BLOCK
         /**
@@ -365,5 +389,17 @@ class Blockchain {
 
 
         // HTML
+        /**
+         * @brief Generate HTML file containing information about given block
+         * 
+         * @param b Block
+         */
         void generate_block_html(block b);
+
+        /**
+         * @brief Generate HTML file containing information about given tranasction
+         * 
+         * @param tx Transaction
+         */
+        void generate_transaction_html(transaction tx);
 };

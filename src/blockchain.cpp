@@ -146,3 +146,18 @@ bool Blockchain::file_exists (const std::string& name) {
     struct stat buffer;   
     return (stat (name.c_str(), &buffer) == 0); 
 }
+
+std::string Blockchain::epoch_to_date(long time) {
+    const time_t t = (time_t)time;
+    return ctime(&t);
+}
+
+std::string Blockchain::time_distance_to_str(long distance) {
+    int days = distance / 60 / 60 / 24;
+    int hours = (distance / 60 / 60) % 24;
+    int minutes = (distance / 60) % 60;
+    int seconds = distance % 60;
+
+    std::string str_distance = std::to_string(days) + "d " + std::to_string(hours) + "h " + std::to_string(minutes) + "m " + std::to_string(seconds) + "s";
+    return str_distance;
+}

@@ -60,6 +60,10 @@ void Blockchain::print_block(const int& height) {
 }
 
 void Blockchain::block_html(const int& height) {
+    if (height > blockchain_height) {
+        std::cout << "Block " << height << " does not exsist!\n";
+        return;
+    }
     block b = read_block(height);
 
     generate_block_html(b);

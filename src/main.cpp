@@ -86,11 +86,15 @@ int main() {
             bc.write();
             std::cout << "No more transactions left\n";
         } else if (input == "outputBlock") {
-            int id;
-            std::cout << "Block id: ";
-            std::cin >> id;
-            bc.block_html(id);
-        }  else if (input == "showBlock") {
+            int height;
+            std::cin >> height;
+            bc.block_html(height);
+        } else if (input == "outputTransaction") {
+            std::string hash;
+            std::cout << "Transaction hash: ";
+            std::cin >> hash;
+            bc.transaction_html(hash);
+        } else if (input == "showBlock") {
             int id;
             std::cout << "Block id: ";
             std::cin >> id;
@@ -109,11 +113,12 @@ int main() {
                         << "\tstartMining\t\tStart decentralized mining\n"
                         << "\tmineBlock\t\tMine one block\n"
                         << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
-                        << "\toutputBlock\t\tOutput block info to HTML file\n"
+                        << "\toutputBlock <block height>\t\tOutput block info to HTML file\n"
+                        << "\toutputTransaction\t\tOutput transaction info to HTML file\n"
                         << "\tshowBlock\t\tGet information about block\n"
                         << "\tshowTransaction\t\tGet information about transaction\n"
                         << "\tquit\t\t\tClose blockchain\n";
-        } else {
+        } else if (input.size() > 0) {
             std::cout << "Command \"" << input << "\" not found\n"
                         << "Type \"help\" to list all available commands\n";
         }

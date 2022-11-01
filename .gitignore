@@ -5,5 +5,5 @@
 test
 *.out
 blockchain
-.html
+*.html
 html

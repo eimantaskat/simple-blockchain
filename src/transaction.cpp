@@ -47,6 +47,11 @@ void Blockchain::print_transaction(const std::string& id) {
     return;
 }
 
+void Blockchain::transaction_html(const std::string& id) {
+    auto tx_it = cached_transactions.find(id);
+    generate_transaction_html(tx_it->second);
+}
+
 // PRIVATE METHODS
 
 void Blockchain::read_transactions() {
@@ -309,8 +314,6 @@ Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
         if (pair != cached_transactions.end()) {
             tx = pair->second;
             senders_tx.push_back(tx);
-        } else {
-            std::cout << "nothin found\n";
         }
     }
     
@@ -341,6 +344,7 @@ Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
                 }
                 
                 // add spent txo to new transaction's input
+                txo_it->unspent = false;
                 current_tx.in.push_back(*txo_it);
                 spent_tx_amount += txo_it->amount;
             }
