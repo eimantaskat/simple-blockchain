@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <unordered_map>
 #include <utility>
-
+#include <ctime>
 #include <iostream>
 
 #include "hash.hpp"
@@ -133,7 +133,12 @@ class Blockchain {
          */
         void print_block(const int& height);
 
-
+        /**
+         * @brief Generate HTML file containing block info
+         * 
+         * @param height Block height
+         */
+        void block_html(const int& height);
 
         // TRANSACTION
         /**
@@ -200,6 +205,7 @@ class Blockchain {
         std::string user_data_file = data_folder + "/users.dat";
         std::string unvalidated_transaction_file = data_folder + "/unvalidated_transactions.dat";
         std::string transaction_file = data_folder + "/transactions.dat";
+        std::string html_block_file = "./block.html";
 
         block mined_block;
         
@@ -356,4 +362,8 @@ class Blockchain {
          * @return Users's stringstream buffer
          */
         std::stringstream generate_users_buffer();
+
+
+        // HTML
+        void generate_block_html(block b);
 };

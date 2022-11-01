@@ -85,11 +85,16 @@ int main() {
             }
             bc.write();
             std::cout << "No more transactions left\n";
-        } else if (input == "showBlock") {
-            int hash;
+        } else if (input == "outputBlock") {
+            int id;
             std::cout << "Block id: ";
-            std::cin >> hash;
-            bc.print_block(hash);
+            std::cin >> id;
+            bc.block_html(id);
+        }  else if (input == "showBlock") {
+            int id;
+            std::cout << "Block id: ";
+            std::cin >> id;
+            bc.print_block(id);
         } else if (input == "showTransaction") {
             std::string hash;
             std::cout << "Transaction hash: ";
@@ -104,11 +109,13 @@ int main() {
                         << "\tstartMining\t\tStart decentralized mining\n"
                         << "\tmineBlock\t\tMine one block\n"
                         << "\tmineAllBlocks\t\tMine blocks until there are no transactions left\n"
+                        << "\toutputBlock\t\tOutput block info to HTML file\n"
                         << "\tshowBlock\t\tGet information about block\n"
                         << "\tshowTransaction\t\tGet information about transaction\n"
                         << "\tquit\t\t\tClose blockchain\n";
         } else {
-            // TODO command to found
+            std::cout << "Command \"" << input << "\" not found\n"
+                        << "Type \"help\" to list all available commands\n";
         }
     }
 }

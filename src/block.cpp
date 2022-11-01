@@ -40,8 +40,8 @@ Blockchain::block Blockchain::get_block(const int& height) {
     return read_block(height);
 }
 
-void Blockchain::print_block(const int& index) {
-    block b = read_block(index);
+void Blockchain::print_block(const int& height) {
+    block b = read_block(height);
 
     std::cout << "Hash: " << b.hash << "\n"
                 << "Height: " << b.height << "\n"
@@ -57,6 +57,12 @@ void Blockchain::print_block(const int& index) {
     }
 
     return;
+}
+
+void Blockchain::block_html(const int& height) {
+    block b = read_block(height);
+
+    generate_block_html(b);
 }
 
 // PRIVATE METHODS
