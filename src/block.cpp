@@ -3,10 +3,9 @@
 
 // PUBLIC METHODS
 
-void Blockchain::create_block(bool limit_guesses, const int& max_guesses) {
+bool Blockchain::create_block(bool limit_guesses, const int& max_guesses) {
     if (blockchain_height == 0) {
-        create_first_block();
-        return;
+        return create_first_block();
     }
 
     block prev_block = get_best_block();
@@ -26,7 +25,7 @@ void Blockchain::create_block(bool limit_guesses, const int& max_guesses) {
     new_block.difficulity_target = difficulity_target;
     new_block.tx = tx;
 
-    mine_block(new_block, limit_guesses, max_guesses);
+    return mine_block(new_block, limit_guesses, max_guesses);
 }
 
 Blockchain::block Blockchain::get_best_block() {
@@ -75,7 +74,7 @@ void Blockchain::block_html(const int& height) {
 
 // PRIVATE METHODS
 
-void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int& max_guesses) {
+bool Blockchain::mine_block(block mineable_block, bool limit_guesses, const int& max_guesses) {
     std::vector<transaction> validated_tx;
     validated_tx.reserve(max_block_tx);
 
@@ -133,8 +132,8 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
         }
         if (limit_guesses && nonce == max_guesses) {
             std::cout << "Failed to mine block\n";
-            
-            return;
+            unspend_transactions(validated_tx);
+            return false;
         }
         if (nonce == ULLONG_MAX) {
             mineable_block.time = get_epoch_time();
@@ -181,12 +180,13 @@ void Blockchain::mine_block(block mineable_block, bool limit_guesses, const int&
     write_to_disk("unvalidated_transactions");
     
     blockchain_height++;
+    return true;
 }
 
-void Blockchain::create_first_block() {
+bool Blockchain::create_first_block() {
     if (blockchain_height != 0) {
-        std::cout << "First block has already been created!\n";
-        return;
+        std::cout << "ERROR: First block has already been created!\n";
+        return false;
     }
 
     std::vector<user> users;
@@ -246,7 +246,7 @@ void Blockchain::create_first_block() {
     new_block.difficulity_target = difficulity_target;
     new_block.tx = tx_ids;
 
-    mine_block(new_block);
+    return mine_block(new_block);
 }
 
 Blockchain::block Blockchain::read_block(const int& index) {

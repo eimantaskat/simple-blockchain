@@ -62,8 +62,14 @@ void Blockchain::decentralized_mining(const int& max_guesses, const int& miners)
 
     for (int miner_no = 0; miner_no < 5; ++miner_no) {
         std::cout << "Miner " << miner_no << ": ";
-        create_block(true);
-        write();
+        bool mined = create_block(true, max_guesses);
+        if (mined) {
+            write();
+            break;
+        }
+        if (miner_no == 4) {
+            miner_no = -1;
+        }
     }
 }
 

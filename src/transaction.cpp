@@ -390,6 +390,22 @@ Blockchain::transaction Blockchain::verify_transaction(transaction current_tx) {
     return current_tx;
 }
 
+void Blockchain::unspend_transactions(std::vector<transaction> validated_tx) {
+    for (auto tx_it = validated_tx.begin(); tx_it != validated_tx.end(); ++tx_it) {
+        for (auto in_tx_it = tx_it->in.begin(); in_tx_it != tx_it->in.end(); ++in_tx_it) {
+            std::string tx_id = in_tx_it->transaction_id;
+            std::string to = in_tx_it->to;
+
+            auto pair = cached_transactions.find(tx_id);
+            for (auto out_tx_it = pair->second.out.begin(); out_tx_it != pair->second.out.end(); ++out_tx_it) {
+                if (out_tx_it->to == to) {
+                    out_tx_it->unspent = true;
+                }
+            }
+        }
+    }
+}
+
 std::vector<std::string> Blockchain::select_random_transactions() {
     auto tx = cached_unvalidated_transactions;
     int size = tx.size();

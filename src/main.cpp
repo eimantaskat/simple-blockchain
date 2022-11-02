@@ -91,7 +91,7 @@ int main() {
                         << "Amount of users: " << users.size() << "\n"
                         << "Amount of transactions: " << transacions.size() << "\n"
                         << "Amount of unvalidated transactions: " << unvalidated_transactions.size() << "\n";
-        } else if (input == "startMining") {
+        } else if (input == "decentralizedMining") {
             bc.decentralized_mining();
         } else if (input == "mineBlock") {
             bc.create_block();
@@ -124,8 +124,8 @@ int main() {
             std::cout << "Commands:\n"
                         << "\thelp\t\t\t\t\tShow this view\n"
                         << "\tgenerateData\t\t\t\tGenerate users and transactions\n"
-                        << "\tshowBlockchainInfo\t\t\t\tShow information about blockchain\n"
-                        << "\tstartMining\t\t\t\tStart decentralized mining\n"
+                        << "\tshowBlockchainInfo\t\t\tShow information about blockchain\n"
+                        << "\tdecentralizedMining\t\t\tStart decentralized mining\n"
                         << "\tmineBlock\t\t\t\tMine one block\n"
                         << "\tmineAllBlocks\t\t\t\tMine blocks until there are no transactions left\n"
                         << "\toutputBlock <block height>\t\tOutput block info to HTML file\n"

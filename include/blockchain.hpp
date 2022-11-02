@@ -99,10 +99,10 @@ class Blockchain {
         /**
          * @brief Simulate "decentralized" mining
          * 
+         * @param max_guesses Amount of hash guesses each miner gets. Defaults to 20,000
          * @param miners Amount of miners to simualte. Defaults to 5
-         * @param max_guesses Amount of hash guesses each miner gets. Defaults to 30,000
          */
-        void decentralized_mining(const int& miners = 5, const int& max_guesses = 30000);
+        void decentralized_mining(const int& max_guesses = 20000, const int& miners = 5);
 
 
         // BLOCK
@@ -110,7 +110,7 @@ class Blockchain {
          * @brief Create a new block if there are any unconfirmed transactions
          * 
          */
-        void create_block(bool limit_guesses = false, const int& max_guesses = 30000);
+        bool create_block(bool limit_guesses = false, const int& max_guesses = 20000);
 
         /**
          * @brief Get the last block from the longest chain
@@ -224,8 +224,8 @@ class Blockchain {
         std::vector<transaction> cached_unvalidated_transactions;
         std::unordered_map<std::string, transaction> cached_transactions;
 
-        std::string blockchain_version = "v0.1";
-        int difficulity_target = 2;
+        std::string blockchain_version = "v0.2";
+        int difficulity_target = 4;
         int blockchain_height = 0;
         int max_block_tx = 100;
 
@@ -290,15 +290,15 @@ class Blockchain {
          * 
          * @param mineable_block Block to mine
          * @param limit_guesses If true, limits amount of hash guesses. Defaults to false
-         * @param max_guesses The limit of guesses if amount of hash guesses is limited. Defaults to 30,000
+         * @param max_guesses The limit of guesses if amount of hash guesses is limited. Defaults to 20,000
          */
-        void mine_block(block mineable_block, bool limit_guesses = false, const int& max_guesses = 30000);
+        bool mine_block(block mineable_block, bool limit_guesses = false, const int& max_guesses = 20000);
 
         /**
          * @brief Create a first block in a blockchain and gives every user starting balance
          * 
          */
-        void create_first_block();
+        bool create_first_block();
 
         /**
          * @brief Read block from file
@@ -350,7 +350,6 @@ class Blockchain {
          */
         void erase_transactions(const std::vector<std::string>& transactions);
 
-        // TODO check if hash is correct
         /**
          * @brief Check if sender has enough money to send and if transaction hash is correct
          * 
@@ -358,6 +357,8 @@ class Blockchain {
          * @return Transaction if it is valid, empty transaction otherwise
          */
         transaction verify_transaction(transaction current_tx);
+
+        void unspend_transactions(std::vector<transaction> validated_tx);
 
         /**
          * @brief Select random transaction to put in a block
