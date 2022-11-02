@@ -1,7 +1,18 @@
 #include "../include/blockchain.hpp"
 
+std::string ExePath() {
+    TCHAR buffer[MAX_PATH] = { 0 };
+    GetModuleFileName( NULL, buffer, MAX_PATH );
+    std::string::size_type pos = std::string(buffer).find_last_of("\\");
+    return std::string(buffer).substr(0, pos);
+}
+
 // CONSTRUCTOR
 Blockchain::Blockchain() {
+    std::cout << "Blockchain version v0.2 (release build)\n"
+                << "Using data directory " << ExePath() << "\\" << data_folder.substr(2, data_folder.size()) << "\n"
+                << "Loading data...\n";
+
     CreateDirectory(data_folder.c_str(), NULL);
     CreateDirectory(blocks_folder.c_str(), NULL);
 
@@ -25,9 +36,18 @@ Blockchain::Blockchain() {
 
 // DESTRUCTOR
 Blockchain::~Blockchain() {
-    printf("Stopping blockchain...\n");
-    write();
-    printf("Blockchain stopped!\n");
+    printf("Shutdown: In progress...\n");
+
+    printf("FlushStateToDisk: Write users cache to disk started\n");
+    write_to_disk("users");
+    printf("FlushStateToDisk: Write users cache to disk completed\n");
+
+    printf("FlushStateToDisk: Write transactions cache to disk started\n");
+    write_to_disk("transactions");
+    write_to_disk("unvalidated_transactions");
+    printf("FlushStateToDisk: Write transactions cache to disk completed\n");
+
+    printf("Shutdown: done\n");
 }
 
 // PUBLIC METHODS
@@ -41,7 +61,7 @@ void Blockchain::decentralized_mining(const int& max_guesses, const int& miners)
     int counter = 0;
 
     for (int miner_no = 0; miner_no < 5; ++miner_no) {
-        std::cout << "Miner: " << miner_no << "\n";
+        std::cout << "Miner " << miner_no << ": ";
         create_block(true);
         write();
     }

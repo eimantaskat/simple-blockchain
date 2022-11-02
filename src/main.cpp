@@ -79,6 +79,18 @@ int main() {
                 bc.write();
                 std::cout << "Generated 1000 users and 10000 transactions\n";
             }
+        } else if (input == "showBlockchainInfo") {
+            auto users = bc.get_users();
+            auto transacions = bc.get_transactions();
+            auto unvalidated_transactions = bc.get_unvalidated_transactions();
+            auto best_block = bc.get_best_block();
+
+            std::cout << "Blockchain height: " << best_block.height << "\n"
+                        << "Best block hash: " << best_block.hash << "\n"
+                        << "Blockchain version: " << best_block.version << "\n"
+                        << "Amount of users: " << users.size() << "\n"
+                        << "Amount of transactions: " << transacions.size() << "\n"
+                        << "Amount of unvalidated transactions: " << unvalidated_transactions.size() << "\n";
         } else if (input == "startMining") {
             bc.decentralized_mining();
         } else if (input == "mineBlock") {
@@ -112,6 +124,7 @@ int main() {
             std::cout << "Commands:\n"
                         << "\thelp\t\t\t\t\tShow this view\n"
                         << "\tgenerateData\t\t\t\tGenerate users and transactions\n"
+                        << "\tshowBlockchainInfo\t\t\t\tShow information about blockchain\n"
                         << "\tstartMining\t\t\t\tStart decentralized mining\n"
                         << "\tmineBlock\t\t\t\tMine one block\n"
                         << "\tmineAllBlocks\t\t\t\tMine blocks until there are no transactions left\n"

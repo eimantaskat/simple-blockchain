@@ -16,6 +16,7 @@
 #include <utility>
 #include <ctime>
 #include <iostream>
+#include <windows.h>
 
 #include "hash.hpp"
 
